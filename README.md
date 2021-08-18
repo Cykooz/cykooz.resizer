@@ -64,10 +64,10 @@ for i in range(1, 10):
     dst_image.save('nasa_%d-255x170.png' % i)
 ```
 
-### Resize raw image
+### Resize raw image with alpha channel
 
 ```python
-from cykooz.resizer import FilterType, ResizeAlg, Resizer, ImageData, PixelType
+from cykooz.resizer import AlphaMulDiv, FilterType, ImageData, PixelType, ResizeAlg, Resizer
 
 def resize_raw(width: int, height: int, pixels: bytes):
     src_image = ImageData(
@@ -76,9 +76,12 @@ def resize_raw(width: int, height: int, pixels: bytes):
         PixelType.U8x4,
         pixels,
     )
-    dst_image = ImageData(255, 170, PixelType.U8x4)
+    alpha_mul_div = AlphaMulDiv()
     resizer = Resizer(ResizeAlg.convolution(FilterType.lanczos3))
+    dst_image = ImageData(255, 170, PixelType.U8x4)
+    alpha_mul_div.multiply_alpha_inplace(src_image)
     resizer.resize(src_image, dst_image)
+    alpha_mul_div.divide_alpha_inplace(dst_image)    
     return dst_image
 ```
 
