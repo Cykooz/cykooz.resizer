@@ -1,0 +1,7 @@
+/target
+.*
+!/.gitignore
+/tests/data/result
+/cykooz/resizer/*.so
+/cykooz/resizer/*.pyd
+/cykooz/resizer/*.dll

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["maturin>=0.11"]
+build-backend = "maturin"
+
+
+[project]
+name = "cykooz.resizer"
+description = "A fast image resizer"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Rust",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "maturin",
+    "pytest",
+    'pytest-benchmark',
+    "Pillow",
+    'tabulate',
+]
+pillow = [
+    "Pillow",
+]
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "tests",
+]
