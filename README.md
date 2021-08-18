@@ -3,7 +3,7 @@
 ```cykooz.resizer``` is package with optimized version of image resizing
 based on Rust's crate [fast_image_resize](https://crates.io/crates/fast_image_resize).
 
-[CHANGELOG](https://github.com/Cykooz/cykooz.resizer/blob/main/CHANGELOG.rst)
+[CHANGELOG](https://github.com/Cykooz/cykooz.resizer/blob/main/CHANGES.md)
 
 ## Installation
 
