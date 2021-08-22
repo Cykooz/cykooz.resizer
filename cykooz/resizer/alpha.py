@@ -43,7 +43,7 @@ class AlphaMulDiv:
     def divide_alpha_inplace(self, image: ImageData):
         self._rust_alpha_mul_div.divide_alpha_inplace(image.image_view)
 
-    def multiply_alpha_pil(self, image: Image.Image) -> Image.Image:
+    def multiply_alpha_pil(self, image: 'Image.Image') -> 'Image.Image':
         if image.mode == 'RGBa':
             return image.copy()
         elif image.mode != 'RGBA':
@@ -55,7 +55,7 @@ class AlphaMulDiv:
         self._rust_alpha_mul_div.multiply_alpha_pil(src_view, dst_view)
         return dst_img
 
-    def multiply_alpha_pil_inplace(self, image: Image.Image):
+    def multiply_alpha_pil_inplace(self, image: 'Image.Image'):
         if image.mode == 'RGBa':
             return
         elif image.mode != 'RGBA':
@@ -64,7 +64,7 @@ class AlphaMulDiv:
         self._rust_alpha_mul_div.multiply_alpha_pil_inplace(image_view)
         image.mode = 'RGBa'
 
-    def divide_alpha_pil(self, image: Image.Image) -> Image.Image:
+    def divide_alpha_pil(self, image: 'Image.Image') -> 'Image.Image':
         if image.mode == 'RGBA':
             return image.copy()
         elif image.mode != 'RGBa':
@@ -75,7 +75,7 @@ class AlphaMulDiv:
         self._rust_alpha_mul_div.divide_alpha_pil(src_view, dst_view)
         return dst_img
 
-    def divide_alpha_pil_inplace(self, image: Image.Image):
+    def divide_alpha_pil_inplace(self, image: 'Image.Image'):
         if image.mode == 'RGBA':
             return
         elif image.mode != 'RGBa':

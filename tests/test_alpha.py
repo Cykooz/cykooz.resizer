@@ -9,7 +9,7 @@ from PIL import Image
 
 from cykooz.resizer import AlphaMulDiv, CpuExtensions
 
-from utils import Checksum, get_image_checksum
+from utils import Checksum, get_image_checksum, save_result
 
 
 @pytest.mark.parametrize(
@@ -19,7 +19,13 @@ from utils import Checksum, get_image_checksum
         (CpuExtensions.sse2, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
         (CpuExtensions.sse4_1, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
         (CpuExtensions.avx2, Checksum(1091739260, 1089908614, 1061097954, 2282335752)),
-    ]
+    ],
+    ids=[
+        'wo forced SIMD',
+        'sse2',
+        'sse4.1',
+        'avx2',
+    ],
 )
 @pytest.mark.parametrize(
     ('inplace',),
@@ -29,15 +35,18 @@ from utils import Checksum, get_image_checksum
     ],
     ids=['not inplace', 'inplace']
 )
-def test_multiply_alpha_pil(inplace: bool, cpu_extensions: CpuExtensions, checksum: int):
+def test_multiply_alpha_pil(
+        source_image: Image.Image,
+        inplace: bool,
+        cpu_extensions: CpuExtensions,
+        checksum: int,
+):
     mul_div = AlphaMulDiv()
+    if cpu_extensions == CpuExtensions.avx2 and mul_div.cpu_extensions != CpuExtensions.avx2:
+        raise pytest.skip('AVX2 instruction not supported by CPU')
     mul_div.cpu_extensions = cpu_extensions
 
-    data_dir = Path(__file__).parent / 'data'
-    img_path = data_dir / 'nasa-4928x3279.png'
-    image: Image.Image = Image.open(img_path)
-    if image.mode != 'RGBA':
-        image = image.convert('RGBA')
+    image = source_image.copy()
     assert get_image_checksum(image.tobytes('raw')) == Checksum(
         1095901781, 1098442059, 1075159669, 2282335752
     )
@@ -52,12 +61,11 @@ def test_multiply_alpha_pil(inplace: bool, cpu_extensions: CpuExtensions, checks
 
     assert get_image_checksum(res_image.tobytes('raw')) == checksum
 
-    result_dir = data_dir / 'result' / 'alpha_mul' / 'pil' / dir_name
-    result_dir.mkdir(parents=True, exist_ok=True)
-    file_name = f'nasa-multiply-{cpu_extensions.name}.png'
-    dst_path = result_dir / file_name
-    res_image.mode = 'RGB'
-    res_image.save(dst_path)
+    save_result(
+        res_image,
+        Path('alpha_mul') / 'pil' / dir_name,
+        f'nasa-multiply-{cpu_extensions.name}.png',
+    )
 
 
 @pytest.mark.parametrize(
@@ -67,7 +75,13 @@ def test_multiply_alpha_pil(inplace: bool, cpu_extensions: CpuExtensions, checks
         (CpuExtensions.sse2, Checksum(1093597720, 1091533607, 1062522217, 2282335752)),
         (CpuExtensions.sse4_1, Checksum(1093597720, 1091533607, 1062522217, 2282335752)),
         (CpuExtensions.avx2, Checksum(1093597720, 1091533607, 1062522217, 2282335752)),
-    ]
+    ],
+    ids=[
+        'wo forced SIMD',
+        'sse2',
+        'sse4.1',
+        'avx2',
+    ],
 )
 @pytest.mark.parametrize(
     ('inplace',),
@@ -77,13 +91,18 @@ def test_multiply_alpha_pil(inplace: bool, cpu_extensions: CpuExtensions, checks
     ],
     ids=['not inplace', 'inplace']
 )
-def test_divide_alpha_pil(inplace: bool, cpu_extensions: CpuExtensions, checksum: int):
+def test_divide_alpha_pil(
+        source_image: Image.Image,
+        inplace: bool,
+        cpu_extensions: CpuExtensions,
+        checksum: int,
+):
     mul_div = AlphaMulDiv()
+    if cpu_extensions == CpuExtensions.avx2 and mul_div.cpu_extensions != CpuExtensions.avx2:
+        raise pytest.skip('AVX2 instruction not supported by CPU')
     mul_div.cpu_extensions = cpu_extensions
 
-    data_dir = Path(__file__).parent / 'data'
-    img_path = data_dir / 'nasa-4928x3279.png'
-    image: Image.Image = Image.open(img_path)
+    image = source_image.copy()
     if image.mode != 'RGBa':
         image = image.convert('RGBa')
     assert get_image_checksum(image.tobytes('raw')) == Checksum(
@@ -101,8 +120,8 @@ def test_divide_alpha_pil(inplace: bool, cpu_extensions: CpuExtensions, checksum
     assert res_image.mode == 'RGBA'
     assert get_image_checksum(res_image.tobytes('raw')) == checksum
 
-    result_dir = data_dir / 'result' / 'alpha_div' / 'pil' / dir_name
-    result_dir.mkdir(parents=True, exist_ok=True)
-    file_name = f'nasa-multiply-{cpu_extensions.name}.png'
-    dst_path = result_dir / file_name
-    res_image.save(dst_path)
+    save_result(
+        res_image,
+        Path('alpha_mul') / 'pil' / dir_name,
+        f'nasa-multiply-{cpu_extensions.name}.png'
+    )

@@ -75,8 +75,8 @@ class Resizer:
 
     def resize_pil(
             self,
-            src_image: Image.Image,
-            dst_image: Image.Image,
+            src_image: 'Image.Image',
+            dst_image: 'Image.Image',
             crop_box: Optional[CropBox] = None,
     ):
         if dst_image.mode not in ('RGBA', 'RGBa', 'RGB'):

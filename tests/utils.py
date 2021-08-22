@@ -3,8 +3,11 @@
 :Date: 12.08.2021
 """
 import dataclasses
+import os
 from collections import defaultdict
+from pathlib import Path
 
+from PIL import Image
 from tabulate import tabulate
 
 
@@ -54,3 +57,13 @@ class BenchResults:
             colalign=['left'] + ['right'] * len(self.columns),
         ))
 
+
+def save_result(image: Image.Image, rel_path: Path, file_name):
+    if not os.environ.get('DONT_SAVE_RESULT', ''):
+        data_dir = Path(__file__).parent / 'data'
+        result_dir = data_dir / 'result' / rel_path
+        result_dir.mkdir(parents=True, exist_ok=True)
+        file_name = f'nasa-multiply-{file_name}.png'
+        dst_path = result_dir / file_name
+        image.mode = 'RGB'
+        image.save(dst_path)

@@ -25,10 +25,14 @@ classifiers = [
 author = "Kirill Kuzminykh"
 author_email = "cykooz@gmail.com"
 url = "https://github.com/Cykooz/cykooz.resizer"
+dependencies = [
+    "dataclasses; python_version == '3.6'",
+]
 
 
 [project.optional-dependencies]
 dev = [
+    "wheel",
     "maturin",
     "pytest",
     'pytest-benchmark',
