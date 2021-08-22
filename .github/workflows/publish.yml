@@ -1,0 +1,33 @@
+name: Publish package into PyPi
+
+on: [workflow_dispatch]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+          architecture: x64
+
+      - name: Build Wheels
+        uses: messense/maturin-action@main
+        with:
+          maturin-version: latest
+          target: x86_64
+          manylinux: auto
+          args: --release --out dist --no-sdist
+
+      - name: Install built wheel
+        run: |
+          pip install cykooz.resizer --no-index --find-links dist --force-reinstall
+          python -c "import cykooz.resizer"
+
+#      - name: Upload wheels
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: wheels
+#          path: dist

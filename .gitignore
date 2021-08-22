@@ -1,6 +1,7 @@
 /target
 .*
 !/.gitignore
+!/.github
 /tests/data/result
 /cykooz/resizer/*.so
 /cykooz/resizer/*.pyd
