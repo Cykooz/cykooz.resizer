@@ -23,11 +23,13 @@ jobs:
 
       - name: Install built wheel
         run: |
-          pip install cykooz.resizer --no-index --find-links dist --force-reinstall
+          cd dist
+          pip install cykooz.resizer --no-index --find-links ./ --force-reinstall
           python -c "import cykooz.resizer"
+          cd ..
 
-#      - name: Upload wheels
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: wheels
-#          path: dist
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: dist
