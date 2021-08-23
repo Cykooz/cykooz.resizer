@@ -23,8 +23,8 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "License :: OSI Approved :: Apache Software License",
 ]
-author = "Kirill Kuzminykh"
-author_email = "cykooz@gmail.com"
+keywords = ["image", "resize", "simd"]
+requires-python = ">=3.6"
 url = "https://github.com/Cykooz/cykooz.resizer"
 dependencies = [
     "dataclasses; python_version == '3.6'",
