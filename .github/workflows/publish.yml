@@ -47,7 +47,7 @@ jobs:
 
       - name: Build Wheels
         if: ${{ matrix.python-version == '3.9' }}
-        uses: messense/maturin-action@main
+        uses: messense/maturin-action@v1
         with:
           maturin-version: latest
           target: x86_64
