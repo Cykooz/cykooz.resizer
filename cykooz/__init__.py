@@ -1,4 +1,1 @@
-"""
-:Authors: cykooz
-:Date: 20.03.2021
-"""
+__path__ = __import__('pkgutil').extend_path(__path__, __name__)
