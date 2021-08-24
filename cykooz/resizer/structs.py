@@ -4,9 +4,10 @@
 """
 import dataclasses
 from enum import Enum, unique
-from typing import Optional
+from typing import Optional, Tuple
 
 from .rust_lib import ImageView
+
 
 __all__ = (
     'Algorithm',
@@ -116,10 +117,101 @@ class CropBox:
     height: int
 
     def __post_init__(self):
-        if self.left <= 0 or self.top <= 0:
+        if self.left < 0 or self.top < 0:
             raise ValueError('"left" and "right" must be greater or equal to zero')
         if self.width <= 0 or self.height <= 0:
             raise ValueError('"width" and "height" must be greater than zero')
+
+    @classmethod
+    def fit(
+            cls,
+            src_size: Tuple[int, int],
+            dst_size: Tuple[int, int],
+            bleed=0.0,
+            centering=(0.5, 0.5),
+    ) -> 'CropBox':
+        """
+        Returns a crop box to resize an source image into the
+        requested aspect ratio and size.
+
+        This function based on code of ImageOps.fit() from Pillow package:
+        https://github.com/python-pillow/Pillow/blob/master/src/PIL/ImageOps.py
+
+        :param src_size: The size of source image to crop.
+        :param dst_size: The requested output size in pixels, given as a
+                         (width, height) tuple.
+        :param bleed: Remove a border around the outside of the image from all
+                      four edges. The value is a decimal percentage (use 0.01 for
+                      one percent). The default value is 0 (no border).
+                      Cannot be greater than or equal to 0.5.
+        :param centering: Control the cropping position.  Use (0.5, 0.5) for
+                          center cropping (e.g. if cropping the width, take 50% off
+                          of the left side, and therefore 50% off the right side).
+                          (0.0, 0.0) will crop from the top left corner (i.e. if
+                          cropping the width, take all of the crop off of the right
+                          side, and if cropping the height, take all of it off the
+                          bottom).  (1.0, 0.0) will crop from the bottom left
+                          corner, etc. (i.e. if cropping the width, take all of the
+                          crop off the left side, and if cropping the height take
+                          none from the top, and therefore all off the bottom).
+        :return: A crop box for source image.
+        """
+        # by Kevin Cazabon, Feb 17/2000
+        # kevin@cazabon.com
+        # http://www.cazabon.com
+
+        # ensure centering is mutable
+        centering = list(centering)
+
+        if not 0.0 <= centering[0] <= 1.0:
+            centering[0] = 0.5
+        if not 0.0 <= centering[1] <= 1.0:
+            centering[1] = 0.5
+
+        if not 0.0 <= bleed < 0.5:
+            bleed = 0.0
+
+        # calculate the area to use for resizing and cropping, subtracting
+        # the 'bleed' around the edges
+
+        # number of pixels to trim off on Top and Bottom, Left and Right
+        bleed_pixels = (bleed * src_size[0], bleed * src_size[1])
+
+        live_size = (
+            src_size[0] - bleed_pixels[0] * 2,
+            src_size[1] - bleed_pixels[1] * 2,
+        )
+
+        # calculate the aspect ratio of the live_size
+        live_size_ratio = float(live_size[0]) / live_size[1]
+
+        # calculate the aspect ratio of the output image
+        output_ratio = float(dst_size[0]) / dst_size[1]
+
+        # figure out if the sides or top/bottom will be cropped off
+        if live_size_ratio == output_ratio:
+            # live_size is already the needed ratio
+            crop_width = live_size[0]
+            crop_height = live_size[1]
+        elif live_size_ratio >= output_ratio:
+            # live_size is wider than what's needed, crop the sides
+            crop_width = output_ratio * live_size[1]
+            crop_height = live_size[1]
+        else:
+            # live_size is taller than what's needed, crop the top and bottom
+            crop_width = live_size[0]
+            crop_height = live_size[0] / output_ratio
+
+        # make the crop
+        crop_left = bleed_pixels[0] + (live_size[0] - crop_width) * centering[0]
+        crop_top = bleed_pixels[1] + (live_size[1] - crop_height) * centering[1]
+
+        return cls(
+            int(round(crop_left)),
+            int(round(crop_top)),
+            int(round(crop_width)),
+            int(round(crop_height)),
+        )
 
 
 class ImageData:
