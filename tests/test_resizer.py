@@ -9,7 +9,7 @@ import pytest
 from PIL import Image
 
 from cykooz.resizer import (
-    CpuExtensions, FilterType, ImageData, PixelType, ResizeAlg, Resizer
+    CpuExtensions, CropBox, FilterType, ImageData, PixelType, ResizeAlg, Resizer
 )
 from utils import Checksum, get_image_checksum, save_result
 
@@ -116,3 +116,20 @@ def _resize_pil(
     assert get_image_checksum(dst_image.tobytes('raw')) == checksum
 
     return dst_image.convert('RGBA')
+
+
+def test_resize_with_cropping(source_image: Image.Image):
+    if source_image.mode != 'RGB':
+        source_image = source_image.convert('RGB')
+    resizer = Resizer(ResizeAlg.super_sampling(FilterType.lanczos3, 2))
+    resizer.cpu_extensions = CpuExtensions.none
+    dst_size = (1024, 256)
+    crop_box = CropBox.get_crop_box_to_fit_dst_size(source_image.size, dst_size)
+    dst_image = Image.new('RGB', dst_size)
+    resizer.resize_pil(source_image, dst_image, crop_box)
+
+    save_result(
+        dst_image,
+        Path('resize') / 'cropping',
+        f'nasa-{dst_image.width}x{dst_image.height}.png',
+    )
