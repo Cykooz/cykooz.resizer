@@ -139,7 +139,7 @@ def test_resize_with_cropping(source_image: Image.Image):
 
 
 @pytest.mark.parametrize('dst_mode', ('RGB', 'RGBA', 'RGBa', 'CMYK', 'I', 'F'))
-@pytest.mark.parametrize('src_mode', ('RGB', 'RGBA', 'CMYK', 'I', 'F'))
+@pytest.mark.parametrize('src_mode', ('RGB', 'RGBA', 'RGBa', 'CMYK', 'I', 'F'))
 def test_image_modes(source_image: Image.Image, src_mode, dst_mode):
     if source_image.mode != src_mode:
         source_image = source_image.convert(src_mode)

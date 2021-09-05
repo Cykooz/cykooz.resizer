@@ -86,7 +86,7 @@ class Resizer:
         into buffer of destination image.
         """
         src_mode = src_image.mode
-        if src_mode not in ('RGB', 'RGBA', 'CMYK', 'I', 'F'):
+        if src_mode not in ('RGB', 'RGBA', 'RGBa', 'CMYK', 'I', 'F'):
             raise ValueError(f'"{src_mode}" is unsupported mode of source PIL image')
         dst_mode = dst_image.mode
         orig_src_image = src_image
@@ -137,6 +137,10 @@ class Resizer:
                     image = image.copy()
                 image.mode = mode
                 return image
+        elif img_mode == 'RGBa':
+            if mode == 'RGBA':
+                return image
+            image = self._alpha_mul_div.divide_alpha_pil(image)
 
         if mode == 'RGBa':
             image = image.convert('RGB')
