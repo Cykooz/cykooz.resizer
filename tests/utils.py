@@ -63,6 +63,11 @@ def save_result(image: Image.Image, rel_path: Path, file_name):
         data_dir = Path(__file__).parent / 'data'
         result_dir = data_dir / 'result' / rel_path
         result_dir.mkdir(parents=True, exist_ok=True)
+        if image.mode == 'RGBa':
+            image = image.convert('RGBA')
+        elif image.mode in ('I', 'F'):
+            image = image.convert('RGB')
+        elif image.mode in ('CMYK',):
+            file_name = file_name.replace('.png', '.tiff')
         dst_path = result_dir / file_name
-        image.mode = 'RGB'
         image.save(dst_path)

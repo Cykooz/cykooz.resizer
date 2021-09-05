@@ -2,10 +2,26 @@ use std::num::NonZeroU32;
 use std::slice;
 
 use fast_image_resize::{CropBox, DstImageView, PixelType, SrcImageView};
+use pyo3::ffi::PyCapsule_GetPointer;
 use pyo3::prelude::*;
-use pyo3::{PyGCProtocol, PyTraverseError, PyVisit};
+use pyo3::{AsPyPointer, PyGCProtocol, PyTraverseError, PyVisit};
 
 use crate::utils::result2pyresult;
+
+// https://github.com/python-pillow/Pillow/blob/master/src/libImaging/Imaging.h#L80
+#[repr(C)]
+#[derive(Debug)]
+struct ImagingMemoryInstance {
+    mode: [u8; 7], /* Band names ("1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "BGR;xy") */
+}
+
+static IMAGING_MAGIC: &[u8] = b"PIL Imaging\0";
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum RgbMode {
+    RgbA,
+    Rgba,
+}
 
 #[pyclass(gc)]
 pub struct PilImageView {
@@ -39,6 +55,8 @@ impl PilImageView {
     fn new(py: Python, pil_image: PyObject) -> PyResult<Self> {
         let py_mode = pil_image.getattr(py, "mode")?;
         let mode: String = py_mode.extract(py)?;
+        // PIL image data organization
+        // https://github.com/python-pillow/Pillow/blob/master/src/libImaging/Imaging.h#L26
         let pixel_type = match mode.as_str() {
             "RGB" | "RGBA" | "RGBa" | "CMYK" | "YCbCr" | "Lab" => PixelType::U8x4,
             "I" => PixelType::I32,
@@ -55,7 +73,8 @@ impl PilImageView {
         )?;
 
         pil_image.call_method0(py, "load")?;
-        let py_unsafe_ptrs = pil_image.getattr(py, "im")?.getattr(py, "unsafe_ptrs")?;
+        let im = pil_image.getattr(py, "im")?;
+        let py_unsafe_ptrs = im.getattr(py, "unsafe_ptrs")?;
         let unsafe_ptrs: Vec<(String, u64)> = py_unsafe_ptrs.extract(py)?;
         let rows_ptr = result2pyresult(
             unsafe_ptrs
@@ -133,5 +152,40 @@ impl PilImageView {
         } else {
             result2pyresult(Err("PIL image is dropped"))
         }
+    }
+
+    pub(crate) fn is_rgb_mode(&self, py: Python) -> PyResult<bool> {
+        if let Some(ref pil_image) = self.pil_image {
+            let im = pil_image.getattr(py, "im")?;
+            let pil_c_image_ptr = im.getattr(py, "ptr")?;
+            let image_ptr = unsafe {
+                PyCapsule_GetPointer(pil_c_image_ptr.as_ptr(), IMAGING_MAGIC.as_ptr() as _)
+            };
+            if !image_ptr.is_null() {
+                let image_ptr = image_ptr as *const ImagingMemoryInstance;
+                let mode = unsafe { &(*image_ptr).mode };
+                return Ok(mode.starts_with(b"RGB"));
+            }
+        }
+        result2pyresult(Err("Unknown mode of PIL image"))
+    }
+
+    pub(crate) fn set_rgb_mode(&mut self, py: Python, value: RgbMode) -> PyResult<()> {
+        if let Some(ref pil_image) = self.pil_image {
+            let im = pil_image.getattr(py, "im")?;
+            let pil_c_image_ptr = im.getattr(py, "ptr")?;
+            let image_ptr = unsafe {
+                PyCapsule_GetPointer(pil_c_image_ptr.as_ptr(), IMAGING_MAGIC.as_ptr() as _)
+            };
+            if !image_ptr.is_null() {
+                let image_ptr = image_ptr as *mut ImagingMemoryInstance;
+                let mode = unsafe { &mut (*image_ptr).mode };
+                match value {
+                    RgbMode::RgbA => mode.copy_from_slice(b"RGBA\0\0\0"),
+                    RgbMode::Rgba => mode.copy_from_slice(b"RGBa\0\0\0"),
+                };
+            }
+        }
+        Ok(())
     }
 }

@@ -4,7 +4,7 @@ use fast_image_resize as fr;
 use pyo3::prelude::*;
 
 use crate::image_view::ImageView;
-use crate::pil_image_view::PilImageView;
+use crate::pil_image_view::{PilImageView, RgbMode};
 use crate::utils::{cpu_extensions_from_u8, cpu_extensions_to_u8, result2pyresult};
 
 #[pyclass]
@@ -83,6 +83,12 @@ impl RustAlphaMulDiv {
         src_image: &PilImageView,
         dst_image: &mut PilImageView,
     ) -> PyResult<()> {
+        if !src_image.is_rgb_mode(py)? {
+            return result2pyresult(Err("Invalid mode of source PIL image"));
+        }
+        if !dst_image.is_rgb_mode(py)? {
+            return result2pyresult(Err("Invalid mode of destination PIL image"));
+        }
         let mul_div_mutex = self.mul_div.clone();
         py.allow_threads(move || {
             let src_image_view = src_image.src_image_view()?;
@@ -96,12 +102,16 @@ impl RustAlphaMulDiv {
     /// The image is represented as instance of PilImageView.
     #[pyo3(text_signature = "($self, image)")]
     fn multiply_alpha_pil_inplace(&self, py: Python, image: &mut PilImageView) -> PyResult<()> {
+        if !image.is_rgb_mode(py)? {
+            return result2pyresult(Err("Invalid mode of PIL image"));
+        }
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(move || {
+        py.allow_threads(|| {
             let mut dst_image_view = image.dst_image_view()?;
             let mul_div = result2pyresult(mul_div_mutex.lock())?;
             result2pyresult(mul_div.multiply_alpha_inplace(&mut dst_image_view))
-        })
+        })?;
+        image.set_rgb_mode(py, RgbMode::Rgba)
     }
 
     /// Divides RGB-channels of source image by alpha-channel and store
@@ -145,6 +155,12 @@ impl RustAlphaMulDiv {
         src_image: &PilImageView,
         dst_image: &mut PilImageView,
     ) -> PyResult<()> {
+        if !src_image.is_rgb_mode(py)? {
+            return result2pyresult(Err("Invalid mode of source PIL image"));
+        }
+        if !dst_image.is_rgb_mode(py)? {
+            return result2pyresult(Err("Invalid mode of destination PIL image"));
+        }
         let mul_div_mutex = self.mul_div.clone();
         py.allow_threads(move || {
             let src_image_view = src_image.src_image_view()?;
@@ -154,15 +170,19 @@ impl RustAlphaMulDiv {
         })
     }
 
-    /// Multiplies RGB-channels of image by alpha-channel inplace.
+    /// Divides RGB-channels of image by alpha-channel inplace.
     /// The image is represented as instance of PilImageView.
     #[pyo3(text_signature = "($self, image)")]
     fn divide_alpha_pil_inplace(&self, py: Python, image: &mut PilImageView) -> PyResult<()> {
+        if !image.is_rgb_mode(py)? {
+            return result2pyresult(Err("Invalid mode of PIL image"));
+        }
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(move || {
+        py.allow_threads(|| {
             let mut dst_image_view = image.dst_image_view()?;
             let mul_div = result2pyresult(mul_div_mutex.lock())?;
             result2pyresult(mul_div.divide_alpha_inplace(&mut dst_image_view))
-        })
+        })?;
+        image.set_rgb_mode(py, RgbMode::RgbA)
     }
 }

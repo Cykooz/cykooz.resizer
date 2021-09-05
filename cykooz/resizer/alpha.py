@@ -60,6 +60,8 @@ class AlphaMulDiv:
             return
         elif image.mode != 'RGBA':
             raise ValueError('Unsupported mode of source image.')
+        if image.readonly:
+            image._copy()
         image_view = PilImageView(image)
         self._rust_alpha_mul_div.multiply_alpha_pil_inplace(image_view)
         image.mode = 'RGBa'
@@ -80,6 +82,8 @@ class AlphaMulDiv:
             return
         elif image.mode != 'RGBa':
             raise ValueError('Unsupported mode of source image.')
+        if image.readonly:
+            image._copy()
         image_view = PilImageView(image)
         self._rust_alpha_mul_div.divide_alpha_pil_inplace(image_view)
         image.mode = 'RGBA'

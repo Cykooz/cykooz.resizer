@@ -158,14 +158,14 @@ def resize_pil(
     resizer.resize_pil(src_image, dst_image)
 
 
-def test_resize_pil(benchmark, resizer: Resizer, alpha_mul_div, source_image, results: BenchResults):
+def test_resize_pil(benchmark, resizer: Resizer, source_image, results: BenchResults):
     if source_image.mode != 'RGBA':
         source_image = source_image.convert('RGBA')
     dst_image = Image.new('RGBA', DST_SIZE)
 
     def setup():
         dst_image.mode = 'RGBA'
-        return (alpha_mul_div, resizer, source_image, dst_image), {}
+        return (resizer, source_image, dst_image), {}
 
     benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
 

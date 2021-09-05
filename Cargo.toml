@@ -14,12 +14,9 @@ crate-type = ["cdylib"]
 name = "cykooz.resizer.rust_lib"
 
 
-[dependencies.fast_image_resize]
-version = "0.3.0"
-
-
-[dependencies.pyo3]
-version = "0.14.3"
+[dependencies]
+fast_image_resize = "0.3.0"
+pyo3 = "0.14.3"
 
 
 [features]

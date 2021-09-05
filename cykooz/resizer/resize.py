@@ -71,6 +71,9 @@ class Resizer:
         self._alpha_mul_div.cpu_extensions = extensions
 
     def resize(self, src_image: ImageData, dst_image: ImageData):
+        """Resize source image into size of destination image and store result
+        into buffer of destination image.
+        """
         self._rust_resizer.resize(src_image.image_view, dst_image.image_view)
 
     def resize_pil(
@@ -79,17 +82,27 @@ class Resizer:
             dst_image: 'Image.Image',
             crop_box: Optional[CropBox] = None,
     ):
-        if dst_image.mode not in ('RGBA', 'RGBa', 'RGB'):
-            raise ValueError('not supported mode of dst_image')
-
+        """Resize source image into size of destination image and store result
+        into buffer of destination image.
+        """
         src_mode = src_image.mode
-        if self.algorithm.algorithm != Algorithm.nearest:
-            if src_mode == 'RGBA':
-                src_image = self._alpha_mul_div.multiply_alpha_pil(src_image)
-            elif src_mode == 'RGB':
-                pass
-            elif src_mode != 'RGBa':
-                src_image = src_image.convert('RGBa')
+        if src_mode not in ('RGB', 'RGBA', 'CMYK', 'I', 'F'):
+            raise ValueError(f'"{src_mode}" is unsupported mode of source PIL image')
+        dst_mode = dst_image.mode
+        orig_src_image = src_image
+
+        if src_mode != dst_mode:
+            if src_mode in ('CMYK', 'I', 'F') or dst_mode not in ('RGB', 'RGBa', 'RGBA'):
+                src_image = self._convert(
+                    src_image,
+                    dst_mode,
+                    in_place=orig_src_image is not src_image
+                )
+                src_mode = src_image.mode
+
+        if self.algorithm.algorithm != Algorithm.nearest and src_mode == 'RGBA':
+            src_image = self._alpha_mul_div.multiply_alpha_pil(src_image)
+            src_mode = 'RGBa'
 
         src_view = PilImageView(src_image)
         if crop_box:
@@ -99,10 +112,40 @@ class Resizer:
                 crop_box.width,
                 crop_box.height,
             )
+        dst_image.mode = src_image.mode
         dst_view = PilImageView(dst_image)
 
         self._rust_resizer.resize_pil(src_view, dst_view)
 
-        if self.algorithm.algorithm != Algorithm.nearest:
-            if dst_image.mode == 'RGBA' and src_mode in ('RGBA', 'RGBa'):
-                self._alpha_mul_div.divide_alpha_pil_inplace(dst_image)
+        if src_mode == 'RGBa' and dst_mode == 'RGBA':
+            self._alpha_mul_div.divide_alpha_pil_inplace(dst_image)
+        elif src_mode == 'RGBA' and dst_mode == 'RGBa':
+            self._alpha_mul_div.multiply_alpha_pil_inplace(dst_image)
+        elif src_mode in ('RGBa', 'RGBA') and dst_mode == 'RGB':
+            dst_image.mode = 'RGB'
+        elif src_mode == 'RGB' and dst_mode in ('RGBa', 'RGBA'):
+            dst_image.mode = dst_mode
+
+    def _convert(self, image: 'Image.Image', mode: str, in_place=False) -> 'Image.Image':
+        img_mode = image.mode
+        if img_mode == mode:
+            return image
+
+        if img_mode == 'RGB':
+            if mode in ('RGBA', 'RGBa'):
+                if not in_place:
+                    image = image.copy()
+                image.mode = mode
+                return image
+
+        if mode == 'RGBa':
+            image = image.convert('RGB')
+            image.mode = 'RGBa'
+            return image
+
+        if img_mode == 'CMYK' and mode in ('I', 'F'):
+            image = image.convert('RGB')
+        elif img_mode in ('I', 'F') and mode == 'CMYK':
+            image = image.convert('RGB')
+
+        return image.convert(mode)

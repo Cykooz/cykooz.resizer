@@ -85,12 +85,23 @@ def resize_raw(width: int, height: int, pixels: bytes):
     return dst_image
 ```
 
+### Change used CPU-extensions
+
+```python
+from cykooz.resizer import FilterType, ResizeAlg, Resizer, CpuExtensions
+
+
+resizer = Resizer(ResizeAlg.convolution(FilterType.lanczos3))
+resizer.cpu_extensions = CpuExtensions.sse4_1
+...
+```
+
 ## Benchmarks
 
 Environment:
 - CPU: Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
 - RAM: DDR4 3000 MHz
-- Ubuntu 20.04 (linux 5.8)
+- Ubuntu 20.04 (linux 5.11)
 - Python 3.8
 - cykooz.resizer = "0.1"
 
@@ -108,7 +119,7 @@ Resize algorithms:
 
 | Package (time in ms)    |   nearest |   bilinear |   lanczos3 |
 |:------------------------|----------:|-----------:|-----------:|
-| Pillow                  |      0.93 |     119.18 |     205.32 |
-| cykooz.resizer          |      0.62 |      66.80 |     124.30 |
-| cykooz.resizer - sse4_1 |      0.62 |      25.07 |      38.65 |
-| cykooz.resizer - avx2   |      0.62 |      17.60 |      26.33 |
+| Pillow                  |      0.93 |     118.66 |     204.77 |
+| cykooz.resizer          |      0.51 |      68.90 |     126.13 |
+| cykooz.resizer - sse4_1 |      0.52 |      26.25 |      39.50 |
+| cykooz.resizer - avx2   |      0.51 |      17.59 |      26.99 |
