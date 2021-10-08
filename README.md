@@ -20,7 +20,7 @@ python3 -m pip install cykooz.resizer[pillow]
 ## Information
 
 Supported pixel types and available optimisations:
-- ``U8x4`` - four bytes per pixel:
+- ``U8x4`` - four bytes per pixel (RGB, RGBA, CMYK):
   - native Rust-code without forced SIMD
   - SSE4.1
   - AVX2
@@ -31,7 +31,7 @@ Supported pixel types and available optimisations:
 
 Implemented resize algorithms:
 - Nearest - is nearest-neighbor interpolation, replacing every pixel with the 
-  nearest pixel in the output; for upscaling this means multiple pixels of the.
+  nearest pixel in the output; for upscaling this means multiple pixels of the
   same color will be present.
 - Convolution with different filters:
   - box
@@ -119,7 +119,7 @@ Resize algorithms:
 
 | Package (time in ms)    |   nearest |   bilinear |   lanczos3 |
 |:------------------------|----------:|-----------:|-----------:|
-| Pillow                  |      0.93 |     118.66 |     204.77 |
-| cykooz.resizer          |      0.51 |      68.90 |     126.13 |
-| cykooz.resizer - sse4_1 |      0.52 |      26.25 |      39.50 |
-| cykooz.resizer - avx2   |      0.51 |      17.59 |      26.99 |
+| Pillow                  |      0.92 |      99.03 |     228.23 |
+| cykooz.resizer          |      0.51 |      69.29 |     127.72 |
+| cykooz.resizer - sse4_1 |      0.51 |      25.66 |      39.11 |
+| cykooz.resizer - avx2   |      0.51 |      17.49 |      27.08 |

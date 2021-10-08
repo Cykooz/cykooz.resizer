@@ -1,21 +1,22 @@
 [build-system]
-requires = ["maturin>=0.11"]
+requires = ["maturin>=0.11.4"]
 build-backend = "maturin"
 
 
 [project]
 name = "cykooz.resizer"
-version = "0.1"
+version = "1.0"
 description = "A fast image resizer"
 readme = "README.md"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Rust",
     "Topic :: Multimedia :: Graphics",
