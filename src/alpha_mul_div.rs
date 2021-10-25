@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use fast_image_resize as fr;
+use fast_image_resize as fir;
 use pyo3::prelude::*;
 
 use crate::image_view::ImageView;
@@ -9,7 +9,7 @@ use crate::utils::{cpu_extensions_from_u8, cpu_extensions_to_u8, result2pyresult
 
 #[pyclass]
 pub struct RustAlphaMulDiv {
-    mul_div: Arc<Mutex<fr::MulDiv>>,
+    mul_div: Arc<Mutex<fir::MulDiv>>,
 }
 
 #[pymethods]
@@ -55,7 +55,7 @@ impl RustAlphaMulDiv {
         let mul_div_mutex = self.mul_div.clone();
         py.allow_threads(move || {
             let src_image_view = src_image.src_image_view()?;
-            let mut dst_image_view = dst_image.dst_image_view()?;
+            let mut dst_image_view = dst_image.dst_image_view();
             let mul_div = result2pyresult(mul_div_mutex.lock())?;
             result2pyresult(mul_div.multiply_alpha(&src_image_view, &mut dst_image_view))
         })
@@ -67,7 +67,7 @@ impl RustAlphaMulDiv {
     fn multiply_alpha_inplace(&self, py: Python, image: &mut ImageView) -> PyResult<()> {
         let mul_div_mutex = self.mul_div.clone();
         py.allow_threads(move || {
-            let mut dst_image_view = image.dst_image_view()?;
+            let mut dst_image_view = image.dst_image_view();
             let mul_div = result2pyresult(mul_div_mutex.lock())?;
             result2pyresult(mul_div.multiply_alpha_inplace(&mut dst_image_view))
         })
@@ -127,7 +127,7 @@ impl RustAlphaMulDiv {
         let mul_div_mutex = self.mul_div.clone();
         py.allow_threads(move || {
             let src_image_view = src_image.src_image_view()?;
-            let mut dst_image_view = dst_image.dst_image_view()?;
+            let mut dst_image_view = dst_image.dst_image_view();
             let mul_div = result2pyresult(mul_div_mutex.lock())?;
             result2pyresult(mul_div.divide_alpha(&src_image_view, &mut dst_image_view))
         })
@@ -139,7 +139,7 @@ impl RustAlphaMulDiv {
     fn divide_alpha_inplace(&self, py: Python, image: &mut ImageView) -> PyResult<()> {
         let mul_div_mutex = self.mul_div.clone();
         py.allow_threads(move || {
-            let mut dst_image_view = image.dst_image_view()?;
+            let mut dst_image_view = image.dst_image_view();
             let mul_div = result2pyresult(mul_div_mutex.lock())?;
             result2pyresult(mul_div.divide_alpha_inplace(&mut dst_image_view))
         })

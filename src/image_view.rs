@@ -1,18 +1,14 @@
-use std::num::NonZeroU32;
-
-use fast_image_resize::{CropBox, DstImageView, PixelType, SrcImageView};
+use fast_image_resize as fir;
+use fast_image_resize::PixelType;
 use pyo3::prelude::*;
+use pyo3::types::PyBytes;
 
 use crate::utils::{pixel_type_from_u8, result2pyresult};
-use pyo3::types::PyBytes;
 
 #[pyclass]
 pub struct ImageView {
-    pixels: Vec<u32>,
-    pixel_type: PixelType,
-    width: NonZeroU32,
-    height: NonZeroU32,
-    crop_box: Option<CropBox>,
+    image: fir::Image<'static>,
+    crop_box: Option<fir::CropBox>,
 }
 
 #[pymethods]
@@ -21,34 +17,37 @@ impl ImageView {
     fn new(width: u32, height: u32, pixel_type: u8, buffer: Option<&[u8]>) -> PyResult<Self> {
         let width = into_non_zero!(width)?;
         let height = into_non_zero!(height)?;
-        let pixels = if let Some(buffer) = buffer {
-            let buffer_size = (width.get() * height.get()) as usize * 4;
+        let pixel_type = pixel_type_from_u8(pixel_type);
+        let pixel_size = match pixel_type {
+            PixelType::U8 => 1,
+            _ => 4,
+        };
+        let image = if let Some(buffer) = buffer {
+            let buffer_size = (width.get() * height.get()) as usize * pixel_size;
             if buffer.len() < buffer_size {
                 return result2pyresult(Err(format!(
                     "Size of 'buffer' must be greater or equal to {} bytes",
                     buffer_size
                 )));
             }
-            buffer
-                .chunks_exact(4)
-                .map(|p| u32::from_le_bytes([p[0], p[1], p[2], p[3]]))
-                .collect()
+            result2pyresult(fir::Image::from_vec_u8(
+                width,
+                height,
+                buffer.to_vec(),
+                pixel_type,
+            ))?
         } else {
-            let pixels_size = (width.get() * height.get()) as usize;
-            vec![0; pixels_size]
+            fir::Image::new(width, height, pixel_type)
         };
 
         Ok(Self {
-            pixels,
-            pixel_type: pixel_type_from_u8(pixel_type),
-            width,
-            height,
+            image,
             crop_box: None,
         })
     }
 
     fn set_crop_box(&mut self, left: u32, top: u32, width: u32, height: u32) -> PyResult<()> {
-        self.crop_box = Some(CropBox {
+        self.crop_box = Some(fir::CropBox {
             left,
             top,
             width: into_non_zero!(width)?,
@@ -58,18 +57,17 @@ impl ImageView {
     }
 
     fn width(&self) -> u32 {
-        self.width.get()
+        self.image.width().get()
     }
 
     fn height(&self) -> u32 {
-        self.height.get()
+        self.image.height().get()
     }
 
     fn buffer(&self, py: Python) -> PyResult<PyObject> {
-        let res_buffer_size = (self.width.get() * self.height.get() * 4) as usize;
-        PyBytes::new_with(py, res_buffer_size, |dst_pixels| {
-            let (_, src_buffer, _) = unsafe { &self.pixels.align_to::<u8>() };
-            dst_pixels.copy_from_slice(src_buffer);
+        let image_buffer = self.image.buffer();
+        PyBytes::new_with(py, image_buffer.len(), |dst_buffer| {
+            dst_buffer.copy_from_slice(image_buffer);
             Ok(())
         })
         .map(|bytes| bytes.to_object(py))
@@ -77,29 +75,15 @@ impl ImageView {
 }
 
 impl ImageView {
-    pub(crate) fn src_image_view(&self) -> PyResult<SrcImageView> {
-        let mut src_image_view = result2pyresult(SrcImageView::from_pixels(
-            self.width,
-            self.height,
-            &self.pixels,
-            self.pixel_type,
-        ))?;
+    pub(crate) fn src_image_view(&self) -> PyResult<fir::ImageView> {
+        let mut src_image_view = self.image.view();
         if let Some(crop_box) = self.crop_box {
             result2pyresult(src_image_view.set_crop_box(crop_box))?;
         }
         Ok(src_image_view)
     }
 
-    pub(crate) fn dst_image_view(&mut self) -> PyResult<DstImageView> {
-        let rows = self
-            .pixels
-            .chunks_exact_mut(self.width.get() as usize)
-            .collect();
-        result2pyresult(DstImageView::from_rows(
-            self.width,
-            self.height,
-            rows,
-            self.pixel_type,
-        ))
+    pub(crate) fn dst_image_view(&mut self) -> fir::ImageViewMut {
+        self.image.view_mut()
     }
 }

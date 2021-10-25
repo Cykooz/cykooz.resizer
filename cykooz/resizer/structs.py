@@ -49,6 +49,7 @@ class PixelType(Enum):
     U8x4 = 1
     I32 = 2
     F32 = 3
+    U8 = 4
 
 
 class ResizeAlg:
@@ -195,25 +196,26 @@ class CropBox:
 
 
 class ImageData:
-    __slots__ = ('image_view',)
+    __slots__ = ('rust_image',)
 
     def __init__(self, width: int, height: int, pixel_type: PixelType, pixels: Optional[bytes] = None):
         if width <= 0 or height <= 0:
             raise ValueError('"width" and "height" must be greater than zero')
         if pixels:
-            min_size = width * height * 4
+            pixel_size = 1 if pixel_type == PixelType.U8 else 4
+            min_size = width * height * pixel_size
             if len(pixels) < min_size:
                 raise ValueError(f'Size of "pixels" must be greater or equal to {min_size} bytes')
-        self.image_view = ImageView(width, height, pixel_type.value, pixels)
+        self.rust_image = ImageView(width, height, pixel_type.value, pixels)
 
     @property
     def width(self) -> int:
-        return self.image_view.width()
+        return self.rust_image.width()
 
     @property
     def height(self) -> int:
-        return self.image_view.height()
+        return self.rust_image.height()
 
     def get_buffer(self) -> bytes:
         """Returns copy of internal buffer of pixels"""
-        return self.image_view.buffer()
+        return self.rust_image.buffer()

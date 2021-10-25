@@ -5,9 +5,9 @@
 from typing import Optional
 
 try:
-    from PIL import Image
+    from PIL import Image as PilImage
 except ImportError:
-    Image = None
+    PilImage = None
 
 from .alpha import AlphaMulDiv
 from .rust_lib import PilImageView, RustResizer
@@ -74,25 +74,25 @@ class Resizer:
         """Resize source image into size of destination image and store result
         into buffer of destination image.
         """
-        self._rust_resizer.resize(src_image.image_view, dst_image.image_view)
+        self._rust_resizer.resize(src_image.rust_image, dst_image.rust_image)
 
     def resize_pil(
             self,
-            src_image: 'Image.Image',
-            dst_image: 'Image.Image',
+            src_image: 'PilImage.Image',
+            dst_image: 'PilImage.Image',
             crop_box: Optional[CropBox] = None,
     ):
         """Resize source image into size of destination image and store result
         into buffer of destination image.
         """
         src_mode = src_image.mode
-        if src_mode not in ('RGB', 'RGBA', 'RGBa', 'CMYK', 'I', 'F'):
+        if src_mode not in ('RGB', 'RGBA', 'RGBa', 'CMYK', 'I', 'F', 'L'):
             raise ValueError(f'"{src_mode}" is unsupported mode of source PIL image')
         dst_mode = dst_image.mode
         orig_src_image = src_image
 
         if src_mode != dst_mode:
-            if src_mode in ('CMYK', 'I', 'F') or dst_mode not in ('RGB', 'RGBa', 'RGBA'):
+            if src_mode in ('CMYK', 'I', 'F', 'L') or dst_mode not in ('RGB', 'RGBa', 'RGBA'):
                 src_image = self._convert(
                     src_image,
                     dst_mode,
@@ -126,7 +126,7 @@ class Resizer:
         elif src_mode == 'RGB' and dst_mode in ('RGBa', 'RGBA'):
             dst_image.mode = dst_mode
 
-    def _convert(self, image: 'Image.Image', mode: str, in_place=False) -> 'Image.Image':
+    def _convert(self, image: 'PilImage.Image', mode: str, in_place=False) -> 'PilImage.Image':
         img_mode = image.mode
         if img_mode == mode:
             return image

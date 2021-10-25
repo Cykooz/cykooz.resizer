@@ -28,6 +28,8 @@ Supported pixel types and available optimisations:
   - native Rust-code without forced SIMD
 - ``F32`` - one float (32 bits) per pixel:
   - native Rust-code without forced SIMD
+- ``U8`` - one byte per pixel:
+  - native Rust-code without forced SIMD
 
 Implemented resize algorithms:
 - Nearest - is nearest-neighbor interpolation, replacing every pixel with the 
@@ -102,11 +104,11 @@ Environment:
 - CPU: Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
 - RAM: DDR4 3000 MHz
 - Ubuntu 20.04 (linux 5.11)
-- Python 3.8
-- cykooz.resizer = "0.1"
+- Python 3.9
+- cykooz.resizer = "1.1"
 
 Other Python libraries used to compare of resizing speed:
-- Pillow = "8.1.3" (https://pypi.org/project/Pillow/)
+- Pillow = "8.4.0" (https://pypi.org/project/Pillow/)
 
 Resize algorithms:
 - Nearest
@@ -119,7 +121,18 @@ Resize algorithms:
 
 | Package (time in ms)    |   nearest |   bilinear |   lanczos3 |
 |:------------------------|----------:|-----------:|-----------:|
-| Pillow                  |      0.92 |      99.03 |     228.23 |
-| cykooz.resizer          |      0.51 |      69.29 |     127.72 |
-| cykooz.resizer - sse4_1 |      0.51 |      25.66 |      39.11 |
-| cykooz.resizer - avx2   |      0.51 |      17.49 |      27.08 |
+| Pillow                  |      0.95 |      95.38 |     209.69 |
+| cykooz.resizer          |      0.51 |      70.32 |     127.74 |
+| cykooz.resizer - sse4_1 |      0.51 |      25.91 |      39.49 |
+| cykooz.resizer - avx2   |      0.51 |      17.69 |      26.12 |
+
+
+### Resize grayscale (U8) image 4928x3279 => 852x567
+
+- Source image [nasa-4928x3279.png](https://github.com/Cykooz/cykooz.resizer/blob/main/tests/data/nasa-4928x3279.png)
+  has converted into grayscale image with one byte per pixel.
+
+| Package (time in ms)    |   nearest |   bilinear |   lanczos3 |
+|:------------------------|----------:|-----------:|-----------:|
+| Pillow                  |      0.33 |      24.79 |      76.38 |
+| cykooz.resizer          |      0.21 |      24.47 |      44.37 |

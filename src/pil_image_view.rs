@@ -1,7 +1,7 @@
 use std::num::NonZeroU32;
 use std::slice;
 
-use fast_image_resize::{CropBox, DstImageView, PixelType, SrcImageView};
+use fast_image_resize::{CropBox, ImageRows, ImageRowsMut, ImageView, ImageViewMut, PixelType};
 use pyo3::ffi::PyCapsule_GetPointer;
 use pyo3::prelude::*;
 use pyo3::{AsPyPointer, PyGCProtocol, PyTraverseError, PyVisit};
@@ -61,6 +61,7 @@ impl PilImageView {
             "RGB" | "RGBA" | "RGBa" | "CMYK" | "YCbCr" | "Lab" => PixelType::U8x4,
             "I" => PixelType::I32,
             "F" => PixelType::F32,
+            "L" => PixelType::U8,
             _ => return result2pyresult(Err("Not supported mode of PIL image")),
         };
 
@@ -76,10 +77,14 @@ impl PilImageView {
         let im = pil_image.getattr(py, "im")?;
         let py_unsafe_ptrs = im.getattr(py, "unsafe_ptrs")?;
         let unsafe_ptrs: Vec<(String, u64)> = py_unsafe_ptrs.extract(py)?;
+        let ptr_name = match pixel_type {
+            PixelType::U8 => "image8",
+            _ => "image32",
+        };
         let rows_ptr = result2pyresult(
             unsafe_ptrs
                 .into_iter()
-                .find(|(name, _)| name == "image32")
+                .find(|(name, _)| name == ptr_name)
                 .map(|(_, ptr)| ptr)
                 .ok_or("Can't get pointer to image pixels"),
         )?;
@@ -111,20 +116,15 @@ impl PilImageView {
 }
 
 impl PilImageView {
-    pub(crate) fn src_image_view(&self) -> PyResult<SrcImageView> {
+    pub(crate) fn src_image_view(&self) -> PyResult<ImageView> {
         if let Some(rows_ptr) = self.rows_ptr {
-            let rows_ptr = rows_ptr as *const *const u32;
-            let width = self.width.get() as usize;
-            let rows = (0..self.height.get() as usize)
-                .map(|i| unsafe { slice::from_raw_parts(*rows_ptr.add(i), width) })
-                .collect();
-
-            let mut view = result2pyresult(SrcImageView::from_rows(
-                self.width,
-                self.height,
-                rows,
-                self.pixel_type,
-            ))?;
+            let rows = match self.pixel_type {
+                PixelType::U8x4 => ImageRows::U8x4(self.get_vec_of_rows(rows_ptr)),
+                PixelType::I32 => ImageRows::I32(self.get_vec_of_rows(rows_ptr)),
+                PixelType::F32 => ImageRows::F32(self.get_vec_of_rows(rows_ptr)),
+                PixelType::U8 => ImageRows::U8(self.get_vec_of_rows(rows_ptr)),
+            };
+            let mut view = result2pyresult(ImageView::new(self.width, self.height, rows))?;
             if let Some(crop_box) = self.crop_box {
                 result2pyresult(view.set_crop_box(crop_box))?;
             }
@@ -134,24 +134,35 @@ impl PilImageView {
         }
     }
 
-    pub(crate) fn dst_image_view(&mut self) -> PyResult<DstImageView> {
+    pub(crate) fn dst_image_view(&mut self) -> PyResult<ImageViewMut> {
         if let Some(rows_ptr) = self.rows_ptr {
-            let rows_ptr = rows_ptr as *const *mut u32;
-            let width = self.width.get() as usize;
-            let rows = (0..self.height.get() as usize)
-                .map(|i| unsafe { slice::from_raw_parts_mut(*rows_ptr.add(i), width) })
-                .collect();
-
-            let view = result2pyresult(DstImageView::from_rows(
-                self.width,
-                self.height,
-                rows,
-                self.pixel_type,
-            ))?;
+            let rows = match self.pixel_type {
+                PixelType::U8x4 => ImageRowsMut::U8x4(self.get_vec_of_mut_rows(rows_ptr)),
+                PixelType::I32 => ImageRowsMut::I32(self.get_vec_of_mut_rows(rows_ptr)),
+                PixelType::F32 => ImageRowsMut::F32(self.get_vec_of_mut_rows(rows_ptr)),
+                PixelType::U8 => ImageRowsMut::U8(self.get_vec_of_mut_rows(rows_ptr)),
+            };
+            let view = result2pyresult(ImageViewMut::new(self.width, self.height, rows))?;
             Ok(view)
         } else {
             result2pyresult(Err("PIL image is dropped"))
         }
+    }
+
+    fn get_vec_of_rows<T>(&self, rows_ptr: u64) -> Vec<&[T]> {
+        let rows_ptr = rows_ptr as *const *const T;
+        let width = self.width.get() as usize;
+        (0..self.height.get() as usize)
+            .map(|i| unsafe { slice::from_raw_parts(*rows_ptr.add(i), width) })
+            .collect()
+    }
+
+    fn get_vec_of_mut_rows<T>(&self, rows_ptr: u64) -> Vec<&mut [T]> {
+        let rows_ptr = rows_ptr as *const *mut T;
+        let width = self.width.get() as usize;
+        (0..self.height.get() as usize)
+            .map(|i| unsafe { slice::from_raw_parts_mut(*rows_ptr.add(i), width) })
+            .collect()
     }
 
     pub(crate) fn is_rgb_mode(&self, py: Python) -> PyResult<bool> {

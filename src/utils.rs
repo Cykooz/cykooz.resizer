@@ -22,6 +22,7 @@ pub(crate) fn pixel_type_from_u8(pixel_type: u8) -> fr::PixelType {
         1 => fr::PixelType::U8x4,
         2 => fr::PixelType::I32,
         3 => fr::PixelType::F32,
+        4 => fr::PixelType::U8,
         _ => fr::PixelType::U8x4,
     }
 }

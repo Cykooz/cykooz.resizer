@@ -115,9 +115,9 @@ impl RustResizer {
         let resizer_mutex = self.resizer.clone();
         py.allow_threads(move || {
             let src_image_view = src_image.src_image_view()?;
-            let mut dst_image_view = dst_image.dst_image_view()?;
+            let mut dst_image_view = dst_image.dst_image_view();
             let mut resizer = result2pyresult(resizer_mutex.lock())?;
-            resizer.resize(&src_image_view, &mut dst_image_view);
+            result2pyresult(resizer.resize(&src_image_view, &mut dst_image_view))?;
             Ok(())
         })
     }
@@ -135,7 +135,7 @@ impl RustResizer {
             let src_image_view = src_image.src_image_view()?;
             let mut dst_image_view = dst_image.dst_image_view()?;
             let mut resizer = result2pyresult(resizer_mutex.lock())?;
-            resizer.resize(&src_image_view, &mut dst_image_view);
+            result2pyresult(resizer.resize(&src_image_view, &mut dst_image_view))?;
             Ok(())
         })
     }

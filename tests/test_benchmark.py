@@ -83,7 +83,7 @@ def results_fixture():
 
 DST_SIZE = (852, 567)
 
-# Pillow-SIMD
+# Pillow
 
 PIL_FILTERS = {
     Image.NEAREST: 'nearest',
@@ -172,6 +172,53 @@ def test_resize_pil(benchmark, resizer: Resizer, source_image, results: BenchRes
     row_name = 'cykooz.resizer'
     if resizer.cpu_extensions != CpuExtensions.none:
         row_name += f' - {resizer.cpu_extensions.name}'
+
+    alg = resizer.algorithm.algorithm
+    if alg == Algorithm.nearest:
+        alg = 'nearest'
+    else:
+        alg = resizer.algorithm.filter_type.name
+
+    stats: Metadata = benchmark.stats
+    value = stats.stats.mean * 1000
+    results.add(row_name, alg, f'{value:.2f}')
+
+
+# Pillow - U8
+
+def test_resize_pillow_u8(benchmark, pil_filter, source_image, results: BenchResults):
+    if source_image.mode != 'L':
+        source_image = source_image.convert('L')
+
+    def setup():
+        src_image = source_image.copy()
+        return (src_image, pil_filter), {}
+
+    benchmark.pedantic(resize_pillow, setup=setup, rounds=50, warmup_rounds=3)
+
+    alg = PIL_FILTERS[pil_filter]
+    stats: Metadata = benchmark.stats
+    value = stats.stats.mean * 1000
+    results.add('Pillow U8', alg, f'{value:.2f}')
+
+
+# cykooz.resizer - resize PIL U8 image
+
+def test_resize_pil_u8(benchmark, resize_alg, source_image, results: BenchResults):
+    resizer = Resizer(resize_alg)
+    resizer.cpu_extensions = CpuExtensions.none
+
+    if source_image.mode != 'L':
+        source_image = source_image.convert('L')
+    dst_image = Image.new('L', DST_SIZE)
+
+    def setup():
+        dst_image.mode = 'L'
+        return (resizer, source_image, dst_image), {}
+
+    benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
+
+    row_name = 'cykooz.resizer U8'
 
     alg = resizer.algorithm.algorithm
     if alg == Algorithm.nearest:
