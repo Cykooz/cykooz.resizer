@@ -105,6 +105,7 @@ Environment:
 - RAM: DDR4 3000 MHz
 - Ubuntu 20.04 (linux 5.11)
 - Python 3.9
+- Rust 1.56
 - cykooz.resizer = "1.1"
 
 Other Python libraries used to compare of resizing speed:
@@ -121,10 +122,10 @@ Resize algorithms:
 
 | Package (time in ms)    |   nearest |   bilinear |   lanczos3 |
 |:------------------------|----------:|-----------:|-----------:|
-| Pillow                  |      0.95 |      95.38 |     209.69 |
-| cykooz.resizer          |      0.51 |      70.32 |     127.74 |
-| cykooz.resizer - sse4_1 |      0.51 |      25.91 |      39.49 |
-| cykooz.resizer - avx2   |      0.51 |      17.69 |      26.12 |
+| Pillow                  |      0.92 |      99.39 |     230.47 |
+| cykooz.resizer          |      0.51 |      68.74 |     126.34 |
+| cykooz.resizer - sse4_1 |      0.51 |      25.90 |      39.40 |
+| cykooz.resizer - avx2   |      0.51 |      17.99 |      28.40 |
 
 
 ### Resize grayscale (U8) image 4928x3279 => 852x567
@@ -134,5 +135,5 @@ Resize algorithms:
 
 | Package (time in ms)    |   nearest |   bilinear |   lanczos3 |
 |:------------------------|----------:|-----------:|-----------:|
-| Pillow                  |      0.33 |      24.79 |      76.38 |
-| cykooz.resizer          |      0.21 |      24.47 |      44.37 |
+| Pillow                  |      0.33 |      39.52 |     118.68 |
+| cykooz.resizer          |      0.21 |      25.82 |      49.49 |

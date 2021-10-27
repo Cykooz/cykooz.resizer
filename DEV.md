@@ -5,7 +5,7 @@
 - Install Rust with help of `rustup` (https://rustup.rs/)
 - Install Pythons dependencies:
   ```shell
-  python3 -m pip install .[pillow]
+  python3 -m pip install .[dev] 
   ```
 
 ## Build Rust library
