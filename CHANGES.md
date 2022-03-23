@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Next release
+## [2.0] - 2022-03-24
 
 - Drop support for Python 3.6.
 - Deleted variant `sse2` from enum ``CpuExtensions``.
