@@ -1,10 +1,11 @@
 use std::num::NonZeroU32;
 use std::slice;
 
-use fast_image_resize::{CropBox, ImageRows, ImageRowsMut, ImageView, ImageViewMut, PixelType};
+use fast_image_resize::pixels::PixelType;
+use fast_image_resize::{CropBox, ImageRows, ImageRowsMut, ImageView, ImageViewMut};
 use pyo3::ffi::PyCapsule_GetPointer;
 use pyo3::prelude::*;
-use pyo3::{AsPyPointer, PyGCProtocol, PyTraverseError, PyVisit};
+use pyo3::{AsPyPointer, PyTraverseError, PyVisit};
 
 use crate::utils::result2pyresult;
 
@@ -23,7 +24,7 @@ pub(crate) enum RgbMode {
     Rgba,
 }
 
-#[pyclass(gc)]
+#[pyclass]
 pub struct PilImageView {
     pil_image: Option<PyObject>,
     pixel_type: PixelType,
@@ -31,22 +32,6 @@ pub struct PilImageView {
     height: NonZeroU32,
     rows_ptr: Option<u64>,
     crop_box: Option<CropBox>,
-}
-
-#[pyproto]
-impl PyGCProtocol for PilImageView {
-    fn __traverse__(&self, visit: PyVisit) -> Result<(), PyTraverseError> {
-        if let Some(obj) = &self.pil_image {
-            visit.call(obj)?
-        }
-        Ok(())
-    }
-
-    fn __clear__(&mut self) {
-        // Clear reference, this decrements ref counter.
-        self.pil_image = None;
-        self.rows_ptr = None;
-    }
 }
 
 #[pymethods]
@@ -113,6 +98,19 @@ impl PilImageView {
     fn pil_image(&self) -> PyResult<&Option<PyObject>> {
         Ok(&self.pil_image)
     }
+
+    fn __traverse__(&self, visit: PyVisit) -> Result<(), PyTraverseError> {
+        if let Some(obj) = &self.pil_image {
+            visit.call(obj)?
+        }
+        Ok(())
+    }
+
+    fn __clear__(&mut self) {
+        // Clear reference, this decrements ref counter.
+        self.pil_image = None;
+        self.rows_ptr = None;
+    }
 }
 
 impl PilImageView {
@@ -123,6 +121,7 @@ impl PilImageView {
                 PixelType::I32 => ImageRows::I32(self.get_vec_of_rows(rows_ptr)),
                 PixelType::F32 => ImageRows::F32(self.get_vec_of_rows(rows_ptr)),
                 PixelType::U8 => ImageRows::U8(self.get_vec_of_rows(rows_ptr)),
+                _ => return result2pyresult(Err("Not supported type of pixels")),
             };
             let mut view = result2pyresult(ImageView::new(self.width, self.height, rows))?;
             if let Some(crop_box) = self.crop_box {
@@ -141,6 +140,7 @@ impl PilImageView {
                 PixelType::I32 => ImageRowsMut::I32(self.get_vec_of_mut_rows(rows_ptr)),
                 PixelType::F32 => ImageRowsMut::F32(self.get_vec_of_mut_rows(rows_ptr)),
                 PixelType::U8 => ImageRowsMut::U8(self.get_vec_of_mut_rows(rows_ptr)),
+                _ => return result2pyresult(Err("Not supported type of pixels")),
             };
             let view = result2pyresult(ImageViewMut::new(self.width, self.height, rows))?;
             Ok(view)

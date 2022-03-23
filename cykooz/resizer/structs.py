@@ -39,17 +39,18 @@ class FilterType(Enum):
 @unique
 class CpuExtensions(Enum):
     none = 1
-    sse2 = 2
-    sse4_1 = 3
-    avx2 = 4
+    sse4_1 = 2
+    avx2 = 3
 
 
 @unique
 class PixelType(Enum):
-    U8x4 = 1
+    U8 = 1
     I32 = 2
     F32 = 3
-    U8 = 4
+    U8x3 = 4
+    U8x4 = 5
+    U16x3 = 6
 
 
 class ResizeAlg:

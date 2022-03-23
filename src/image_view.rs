@@ -1,5 +1,5 @@
 use fast_image_resize as fir;
-use fast_image_resize::PixelType;
+use fast_image_resize::pixels::PixelType;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
@@ -20,6 +20,8 @@ impl ImageView {
         let pixel_type = pixel_type_from_u8(pixel_type);
         let pixel_size = match pixel_type {
             PixelType::U8 => 1,
+            PixelType::U8x3 => 3,
+            PixelType::U16x3 => 6,
             _ => 4,
         };
         let image = if let Some(buffer) = buffer {

@@ -25,9 +25,9 @@ def test_resizer_settings():
 @pytest.mark.parametrize(
     ('cpu_extensions', 'checksum'),
     [
-        (CpuExtensions.none, Checksum(3032562, 3011548, 2921753, 6122818)),
-        (CpuExtensions.sse4_1, Checksum(3032287, 3011377, 2921589, 6122829)),
-        (CpuExtensions.avx2, Checksum(3031014, 3010669, 2920705, 6122818)),
+        (CpuExtensions.none, Checksum(3032533, 3011520, 2921736, 6122818)),
+        (CpuExtensions.sse4_1, Checksum(3032533, 3011520, 2921736, 6122818)),
+        (CpuExtensions.avx2, Checksum(3032533, 3011520, 2921736, 6122818)),
     ],
     ids=[
         'wo forced SIMD',

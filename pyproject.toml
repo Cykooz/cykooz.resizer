@@ -1,18 +1,17 @@
 [build-system]
-requires = ["maturin>=0.11.4"]
+requires = ["maturin>=0.12.4"]
 build-backend = "maturin"
 
 
 [project]
 name = "cykooz.resizer"
-version = "1.1"
+version = "2.0"
 description = "A fast image resizer"
 readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -25,11 +24,8 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
 ]
 keywords = ["image", "resize", "simd"]
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 url = "https://github.com/Cykooz/cykooz.resizer"
-dependencies = [
-    "dataclasses; python_version == '3.6'",
-]
 
 
 [project.optional-dependencies]

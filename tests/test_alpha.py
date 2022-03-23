@@ -16,13 +16,11 @@ from utils import Checksum, get_image_checksum, save_result
     ('cpu_extensions', 'checksum'),
     [
         (CpuExtensions.none, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
-        (CpuExtensions.sse2, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
         (CpuExtensions.sse4_1, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
-        (CpuExtensions.avx2, Checksum(1091739260, 1089908614, 1061097954, 2282335752)),
+        (CpuExtensions.avx2, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
     ],
     ids=[
         'wo forced SIMD',
-        'sse2',
         'sse4.1',
         'avx2',
     ],
@@ -71,14 +69,12 @@ def test_multiply_alpha_pil(
 @pytest.mark.parametrize(
     ('cpu_extensions', 'checksum'),
     [
-        (CpuExtensions.none, Checksum(1093603374, 1091538008, 1062526277, 2282335752)),
-        (CpuExtensions.sse2, Checksum(1093597720, 1091533607, 1062522217, 2282335752)),
-        (CpuExtensions.sse4_1, Checksum(1093597720, 1091533607, 1062522217, 2282335752)),
-        (CpuExtensions.avx2, Checksum(1093597720, 1091533607, 1062522217, 2282335752)),
+        (CpuExtensions.none, Checksum(1093599367, 1091535535, 1062524230, 2282335752)),
+        (CpuExtensions.sse4_1, Checksum(1093599367, 1091535535, 1062524230, 2282335752)),
+        (CpuExtensions.avx2, Checksum(1093599367, 1091535535, 1062524230, 2282335752)),
     ],
     ids=[
         'wo forced SIMD',
-        'sse2',
         'sse4.1',
         'avx2',
     ],

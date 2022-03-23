@@ -15,8 +15,8 @@ name = "cykooz.resizer.rust_lib"
 
 
 [dependencies]
-fast_image_resize = "0.4.0"
-pyo3 = "0.14.5"
+fast_image_resize = "0.8.0"
+pyo3 = "0.16.2"
 
 
 [features]
