@@ -46,11 +46,29 @@ class CpuExtensions(Enum):
 @unique
 class PixelType(Enum):
     U8 = 1
-    I32 = 2
-    F32 = 3
-    U8x3 = 4
-    U8x4 = 5
-    U16x3 = 6
+    U8x2 = 2
+    U8x3 = 3
+    U8x4 = 4
+    U16 = 5
+    U16x2 = 6
+    U16x3 = 7
+    U16x4 = 8
+    I32 = 9
+    F32 = 10
+
+
+PIXEL_SIZE = {
+    PixelType.U8: 1,
+    PixelType.U8x2: 2,
+    PixelType.U8x3: 3,
+    PixelType.U8x4: 4,
+    PixelType.U16: 2,
+    PixelType.U16x2: 4,
+    PixelType.U16x3: 6,
+    PixelType.U16x4: 8,
+    PixelType.I32: 4,
+    PixelType.F32: 4,
+}
 
 
 class ResizeAlg:
@@ -203,7 +221,7 @@ class ImageData:
         if width <= 0 or height <= 0:
             raise ValueError('"width" and "height" must be greater than zero')
         if pixels:
-            pixel_size = 1 if pixel_type == PixelType.U8 else 4
+            pixel_size = PIXEL_SIZE[pixel_type]
             min_size = width * height * pixel_size
             if len(pixels) < min_size:
                 raise ValueError(f'Size of "pixels" must be greater or equal to {min_size} bytes')

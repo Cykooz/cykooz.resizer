@@ -20,26 +20,19 @@ python3 -m pip install cykooz.resizer[pillow]
 ## Information
 
 Supported pixel types and available optimisations:
-- ``U8`` - one byte per pixel:
-  - native Rust-code without forced SIMD
-  - SSE4.1 (partial)
-  - AVX2
-- `U8x3` - three `u8` components per pixel (e.g. RGB):
-  - native Rust-code without forced SIMD
-  - SSE4.1 (partial)
-  - AVX2
-- `U8x4` - four `u8` components per pixel (RGBA, RGBx, CMYK and other):
-  - native Rust-code without forced SIMD
-  - SSE4.1
-  - AVX2
-- `U16x3` - three `u16` components per pixel (e.g. RGB):
-  - native Rust-code without forced SIMD
-  - SSE4.1
-  - AVX2
-- ``I32`` - one signed integer (32 bits) per pixel:
-  - native Rust-code without forced SIMD
-- ``F32`` - one float (32 bits) per pixel:
-  - native Rust-code without forced SIMD
+
+| Format | Description                                                   | Native Rust | SSE4.1  | AVX2 |
+|:------:|:--------------------------------------------------------------|:-----------:|:-------:|:----:|
+|   U8   | One `u8` component per pixel (e.g. L)                         |      +      | partial |  +   |
+|  U8x2  | Two `u8` components per pixel (e.g. LA)                       |      +      |    +    |  +   |
+|  U8x3  | Three `u8` components per pixel (e.g. RGB)                    |      +      | partial |  +   |
+|  U8x4  | Four `u8` components per pixel (e.g. RGBA, RGBx, CMYK)        |      +      |    +    |  +   |
+|  U16   | One `u16` components per pixel (e.g. L16)                     |      +      |    +    |  +   |
+| U16x2  | Two `u16` components per pixel (e.g. LA16)                    |      +      |    +    |  +   |
+| U16x3  | Three `u16` components per pixel (e.g. RGB16)                 |      +      |    +    |  +   |
+| U16x4  | Four `u16` components per pixel (e.g. RGBA16, RGBx16, CMYK16) |      +      |    +    |  +   |
+|  I32   | One `i32` component per pixel                                 |      +      |    -    |  -   |
+|  F32   | One `f32` component per pixel                                 |      +      |    -    |  -   |
 
 Implemented resize algorithms:
 - Nearest - is nearest-neighbor interpolation, replacing every pixel with the 
@@ -111,15 +104,15 @@ resizer.cpu_extensions = CpuExtensions.sse4_1
 ## Benchmarks
 
 Environment:
-- CPU: Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
-- RAM: DDR4 3000 MHz
-- Ubuntu 20.04 (linux 5.13)
+- CPU: AMD Ryzen 9 5950X
+- RAM: DDR4 3800 MHz
+- Ubuntu 22.04 (linux 5.15.0)
 - Python 3.9
-- Rust 1.59.0
-- cykooz.resizer = "2.0"
+- Rust 1.62.0
+- cykooz.resizer = "2.1"
 
 Other Python libraries used to compare of resizing speed:
-- Pillow = "9.0.1" (https://pypi.org/project/Pillow/)
+- Pillow = "9.2.0" (https://pypi.org/project/Pillow/)
 
 Resize algorithms:
 - Nearest
@@ -132,10 +125,10 @@ Resize algorithms:
 
 | Package (time in ms)    |   nearest |   bilinear |   lanczos3 |
 |:------------------------|----------:|-----------:|-----------:|
-| Pillow                  |      0.92 |     112.37 |     273.12 |
-| cykooz.resizer          |      0.52 |      64.97 |     119.94 |
-| cykooz.resizer - sse4_1 |      0.52 |      23.20 |      36.92 |
-| cykooz.resizer - avx2   |      0.52 |      17.27 |      26.35 |
+| Pillow                  |      0.66 |      93.16 |     179.96 |
+| cykooz.resizer          |      0.20 |      39.19 |      76.71 |
+| cykooz.resizer - sse4_1 |      0.20 |      15.60 |      25.16 |
+| cykooz.resizer - avx2   |      0.20 |      11.95 |      18.54 |
 
 
 ### Resize grayscale (U8) image 4928x3279 => 852x567
@@ -145,5 +138,5 @@ Resize algorithms:
 
 | Package (time in ms) |   nearest |   bilinear |   lanczos3 |
 |:---------------------|----------:|-----------:|-----------:|
-| Pillow               |      0.29 |      38.30 |     117.40 |
-| cykooz.resizer       |      0.21 |      20.36 |      36.66 |
+| Pillow               |      0.28 |      20.73 |      51.07 |
+| cykooz.resizer       |      0.19 |      14.31 |      23.84 |

@@ -7,7 +7,7 @@ use pyo3::ffi::PyCapsule_GetPointer;
 use pyo3::prelude::*;
 use pyo3::{AsPyPointer, PyTraverseError, PyVisit};
 
-use crate::utils::result2pyresult;
+use crate::utils::{into_non_zero, result2pyresult};
 
 // https://github.com/python-pillow/Pillow/blob/master/src/libImaging/Imaging.h#L80
 #[repr(C)]
@@ -88,8 +88,8 @@ impl PilImageView {
         self.crop_box = Some(CropBox {
             left,
             top,
-            width: into_non_zero!(width)?,
-            height: into_non_zero!(height)?,
+            width: into_non_zero(width)?,
+            height: into_non_zero(height)?,
         });
         Ok(())
     }

@@ -3,7 +3,7 @@ use fast_image_resize::pixels::PixelType;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
-use crate::utils::{pixel_type_from_u8, result2pyresult};
+use crate::utils::{into_non_zero, pixel_type_from_u8, result2pyresult};
 
 #[pyclass]
 pub struct ImageView {
@@ -15,13 +15,17 @@ pub struct ImageView {
 impl ImageView {
     #[new]
     fn new(width: u32, height: u32, pixel_type: u8, buffer: Option<&[u8]>) -> PyResult<Self> {
-        let width = into_non_zero!(width)?;
-        let height = into_non_zero!(height)?;
+        let width = into_non_zero(width)?;
+        let height = into_non_zero(height)?;
         let pixel_type = pixel_type_from_u8(pixel_type);
         let pixel_size = match pixel_type {
             PixelType::U8 => 1,
+            PixelType::U8x2 => 2,
             PixelType::U8x3 => 3,
+            PixelType::U16 => 2,
+            PixelType::U16x2 => 4,
             PixelType::U16x3 => 6,
+            PixelType::U16x4 => 8,
             _ => 4,
         };
         let image = if let Some(buffer) = buffer {
@@ -52,8 +56,8 @@ impl ImageView {
         self.crop_box = Some(fir::CropBox {
             left,
             top,
-            width: into_non_zero!(width)?,
-            height: into_non_zero!(height)?,
+            width: into_non_zero(width)?,
+            height: into_non_zero(height)?,
         });
         Ok(())
     }
