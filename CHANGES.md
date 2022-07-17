@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [2.1.1] - 2022-07-17
+
+- Fixed resizing when the destination image has the same dimensions 
+  as the source image.
+
 ## [2.1] - 2022-07-07
 
 - Added support of new types of pixels: `U8x2`, `U16`, `U16x2` and `U16x4`.
