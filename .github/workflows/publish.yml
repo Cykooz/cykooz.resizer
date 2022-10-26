@@ -46,14 +46,16 @@ jobs:
           cd ..
 
       - name: Build Wheels
+        if: ${{ matrix.python-version == '3.11' }}
         uses: messense/maturin-action@v1
         with:
           maturin-version: latest
           target: x86_64
           manylinux: auto
-          args: --release --strip --out dist -i python
+          args: --release --strip --out dist -i 3.7 3.8 3.9 3.10 3.11
 
       - name: Install built wheel
+        if: ${{ matrix.python-version == '3.11' }}
         run: |
           cd dist
           python -m pip install cykooz.resizer --no-index --find-links ./ --force-reinstall
@@ -61,6 +63,7 @@ jobs:
           cd ..
 
       - name: Upload wheels
+        if: ${{ matrix.python-version == '3.11' }}
         uses: actions/upload-artifact@v3
         with:
           name: wheels
