@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [2.1.2] - 2022-10-26
+
+- Added building of wheel for Python 3.11.
+- Updated version of ``pyo3`` to 0.17.2.
+
 ## [2.1.1] - 2022-07-17
 
 - Fixed resizing when the destination image has the same dimensions 

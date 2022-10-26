@@ -13,7 +13,7 @@ pub(crate) fn result2pyresult<T, E: Display>(res: Result<T, E>) -> PyResult<T> {
 
 #[inline]
 pub(crate) fn into_non_zero(v: u32) -> PyResult<NonZeroU32> {
-    result2pyresult(std::num::NonZeroU32::new(v).ok_or_else(|| format!("Value of '{}' is zero", v)))
+    result2pyresult(NonZeroU32::new(v).ok_or_else(|| format!("Value of '{}' is zero", v)))
 }
 
 pub(crate) fn pixel_type_from_u8(pixel_type: u8) -> PixelType {
