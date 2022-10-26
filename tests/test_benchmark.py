@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from PIL import Image
+from PIL.Image import Resampling
 from pytest_benchmark.stats import Metadata
 
 from cykooz.resizer import (
@@ -86,9 +87,9 @@ DST_SIZE = (852, 567)
 # Pillow
 
 PIL_FILTERS = {
-    Image.NEAREST: 'nearest',
-    Image.BILINEAR: 'bilinear',
-    Image.LANCZOS: 'lanczos3',
+    Resampling.NEAREST: 'nearest',
+    Resampling.BILINEAR: 'bilinear',
+    Resampling.LANCZOS: 'lanczos3',
 }
 
 
