@@ -103,23 +103,20 @@ jobs:
         run: |
           pytest --benchmark-skip -vv
 
-      - name: Build wheels
-        if: ${{ matrix.python-version == '3.11' }}
+      - name: Build wheel
         uses: messense/maturin-action@v1
         with:
           target: "x86_64-pc-windows-msvc"
-          args: --release --strip --out dist -i 3.7 3.8 3.9 3.10 3.11
+          args: --release --strip --out dist -i ${{ matrix.python-version }}
 
       - name: Install built wheel
-        if: ${{ matrix.python-version == '3.11' }}
         run: |
           cd dist
           python -m pip install cykooz.resizer --no-index --find-links . --force-reinstall
           python -c "import cykooz.resizer"
           cd ..
 
-      - name: Upload wheels
-        if: ${{ matrix.python-version == '3.11' }}
+      - name: Upload wheel
         uses: actions/upload-artifact@v2
         with:
           name: wheels
