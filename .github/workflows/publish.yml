@@ -107,7 +107,7 @@ jobs:
         uses: messense/maturin-action@v1
         with:
           target: "x86_64-pc-windows-msvc"
-          args: --release --strip --out dist -i ${{ matrix.python-version }}
+          args: --release --strip --out dist -i "${{ env.pythonLocation }}\python.exe"
 
       - name: Install built wheel
         run: |
