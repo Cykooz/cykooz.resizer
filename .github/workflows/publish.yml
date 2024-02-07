@@ -8,12 +8,12 @@ jobs:
     name: Linux
     strategy:
       matrix:
-        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11" ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11", "3.12" ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
@@ -46,16 +46,16 @@ jobs:
           cd ..
 
       - name: Build Wheels
-        if: ${{ matrix.python-version == '3.11' }}
-        uses: messense/maturin-action@v1
+        if: ${{ matrix.python-version == '3.12' }}
+        uses: PyO3/maturin-action@v1
         with:
           maturin-version: latest
           target: x86_64
           manylinux: auto
-          args: --release --strip --out dist -i 3.7 3.8 3.9 3.10 3.11
+          args: --release --strip --out dist -i 3.7 3.8 3.9 3.10 3.11 3.12
 
       - name: Install built wheel
-        if: ${{ matrix.python-version == '3.11' }}
+        if: ${{ matrix.python-version == '3.12' }}
         run: |
           cd dist
           python -m pip install cykooz.resizer --no-index --find-links ./ --force-reinstall
@@ -63,8 +63,8 @@ jobs:
           cd ..
 
       - name: Upload wheels
-        if: ${{ matrix.python-version == '3.11' }}
-        uses: actions/upload-artifact@v3
+        if: ${{ matrix.python-version == '3.12' }}
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: dist
@@ -75,11 +75,11 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11" ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11", "3.12" ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: "x64"
@@ -104,7 +104,7 @@ jobs:
           pytest --benchmark-skip -vv
 
       - name: Build wheel
-        uses: messense/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         with:
           target: "x86_64-pc-windows-msvc"
           args: --release --strip --out dist -i python
@@ -117,7 +117,7 @@ jobs:
           cd ..
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: dist
@@ -128,11 +128,11 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11" ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11", "3.12" ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -156,7 +156,7 @@ jobs:
           pytest --benchmark-skip -vv
 
       - name: Build wheels - x86_64
-        uses: messense/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         with:
           target: "x86_64-apple-darwin"
           args: --release --strip --out dist -i python

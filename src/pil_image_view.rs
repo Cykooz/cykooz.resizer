@@ -1,13 +1,13 @@
 use std::num::NonZeroU32;
 use std::slice;
 
-use fast_image_resize::pixels::PixelType;
-use fast_image_resize::{CropBox, ImageRows, ImageRowsMut, ImageView, ImageViewMut};
+use fast_image_resize::pixels::{PixelExt, PixelType};
+use fast_image_resize::{CropBox, DynamicImageView, DynamicImageViewMut, ImageView, ImageViewMut};
 use pyo3::ffi::PyCapsule_GetPointer;
 use pyo3::prelude::*;
-use pyo3::{AsPyPointer, PyTraverseError, PyVisit};
+use pyo3::{PyTraverseError, PyVisit};
 
-use crate::utils::{into_non_zero, result2pyresult};
+use crate::utils::result2pyresult;
 
 // https://github.com/python-pillow/Pillow/blob/master/src/libImaging/Imaging.h#L80
 #[repr(C)]
@@ -84,19 +84,19 @@ impl PilImageView {
         })
     }
 
-    fn set_crop_box(&mut self, left: u32, top: u32, width: u32, height: u32) -> PyResult<()> {
+    fn set_crop_box(&mut self, left: f64, top: f64, width: f64, height: f64) -> PyResult<()> {
         self.crop_box = Some(CropBox {
             left,
             top,
-            width: into_non_zero(width)?,
-            height: into_non_zero(height)?,
+            width,
+            height,
         });
         Ok(())
     }
 
     #[getter]
-    fn pil_image(&self) -> PyResult<&Option<PyObject>> {
-        Ok(&self.pil_image)
+    fn pil_image(&self) -> PyResult<Option<PyObject>> {
+        Ok(self.pil_image.clone())
     }
 
     fn __traverse__(&self, visit: PyVisit) -> Result<(), PyTraverseError> {
@@ -114,16 +114,15 @@ impl PilImageView {
 }
 
 impl PilImageView {
-    pub(crate) fn src_image_view(&self) -> PyResult<ImageView> {
+    pub(crate) fn src_image_view(&self) -> PyResult<DynamicImageView> {
         if let Some(rows_ptr) = self.rows_ptr {
-            let rows = match self.pixel_type {
-                PixelType::U8x4 => ImageRows::U8x4(self.get_vec_of_rows(rows_ptr)),
-                PixelType::I32 => ImageRows::I32(self.get_vec_of_rows(rows_ptr)),
-                PixelType::F32 => ImageRows::F32(self.get_vec_of_rows(rows_ptr)),
-                PixelType::U8 => ImageRows::U8(self.get_vec_of_rows(rows_ptr)),
+            let mut view = match self.pixel_type {
+                PixelType::U8x4 => DynamicImageView::U8x4(self.get_image_view(rows_ptr)?),
+                PixelType::I32 => DynamicImageView::I32(self.get_image_view(rows_ptr)?),
+                PixelType::F32 => DynamicImageView::F32(self.get_image_view(rows_ptr)?),
+                PixelType::U8 => DynamicImageView::U8(self.get_image_view(rows_ptr)?),
                 _ => return result2pyresult(Err("Not supported type of pixels")),
             };
-            let mut view = result2pyresult(ImageView::new(self.width, self.height, rows))?;
             if let Some(crop_box) = self.crop_box {
                 result2pyresult(view.set_crop_box(crop_box))?;
             }
@@ -133,32 +132,47 @@ impl PilImageView {
         }
     }
 
-    pub(crate) fn dst_image_view(&mut self) -> PyResult<ImageViewMut> {
+    fn get_image_view<P: PixelExt>(&self, rows_ptr: u64) -> PyResult<ImageView<P>> {
+        result2pyresult(ImageView::new(
+            self.width,
+            self.height,
+            self.get_vec_of_rows(rows_ptr),
+        ))
+    }
+
+    pub(crate) fn dst_image_view(&mut self) -> PyResult<DynamicImageViewMut> {
         if let Some(rows_ptr) = self.rows_ptr {
-            let rows = match self.pixel_type {
-                PixelType::U8x4 => ImageRowsMut::U8x4(self.get_vec_of_mut_rows(rows_ptr)),
-                PixelType::I32 => ImageRowsMut::I32(self.get_vec_of_mut_rows(rows_ptr)),
-                PixelType::F32 => ImageRowsMut::F32(self.get_vec_of_mut_rows(rows_ptr)),
-                PixelType::U8 => ImageRowsMut::U8(self.get_vec_of_mut_rows(rows_ptr)),
+            let view = match self.pixel_type {
+                PixelType::U8x4 => DynamicImageViewMut::U8x4(self.get_image_view_mut(rows_ptr)?),
+                PixelType::I32 => DynamicImageViewMut::I32(self.get_image_view_mut(rows_ptr)?),
+                PixelType::F32 => DynamicImageViewMut::F32(self.get_image_view_mut(rows_ptr)?),
+                PixelType::U8 => DynamicImageViewMut::U8(self.get_image_view_mut(rows_ptr)?),
                 _ => return result2pyresult(Err("Not supported type of pixels")),
             };
-            let view = result2pyresult(ImageViewMut::new(self.width, self.height, rows))?;
             Ok(view)
         } else {
             result2pyresult(Err("PIL image is dropped"))
         }
     }
 
-    fn get_vec_of_rows<T>(&self, rows_ptr: u64) -> Vec<&[T]> {
-        let rows_ptr = rows_ptr as *const *const T;
+    fn get_image_view_mut<P: PixelExt>(&self, rows_ptr: u64) -> PyResult<ImageViewMut<P>> {
+        result2pyresult(ImageViewMut::new(
+            self.width,
+            self.height,
+            self.get_vec_of_mut_rows(rows_ptr),
+        ))
+    }
+
+    fn get_vec_of_rows<P>(&self, rows_ptr: u64) -> Vec<&[P]> {
+        let rows_ptr = rows_ptr as *const *const P;
         let width = self.width.get() as usize;
         (0..self.height.get() as usize)
             .map(|i| unsafe { slice::from_raw_parts(*rows_ptr.add(i), width) })
             .collect()
     }
 
-    fn get_vec_of_mut_rows<T>(&self, rows_ptr: u64) -> Vec<&mut [T]> {
-        let rows_ptr = rows_ptr as *const *mut T;
+    fn get_vec_of_mut_rows<P>(&self, rows_ptr: u64) -> Vec<&mut [P]> {
+        let rows_ptr = rows_ptr as *const *mut P;
         let width = self.width.get() as usize;
         (0..self.height.get() as usize)
             .map(|i| unsafe { slice::from_raw_parts_mut(*rows_ptr.add(i), width) })

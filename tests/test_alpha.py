@@ -16,7 +16,10 @@ from utils import Checksum, get_image_checksum, save_result
     ('cpu_extensions', 'checksum'),
     [
         (CpuExtensions.none, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
-        (CpuExtensions.sse4_1, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
+        (
+            CpuExtensions.sse4_1,
+            Checksum(1091845751, 1090022383, 1061212976, 2282335752),
+        ),
         (CpuExtensions.avx2, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
     ],
     ids=[
@@ -31,16 +34,19 @@ from utils import Checksum, get_image_checksum, save_result
         (False,),
         (True,),
     ],
-    ids=['not inplace', 'inplace']
+    ids=['not inplace', 'inplace'],
 )
 def test_multiply_alpha_pil(
-        source_image: Image.Image,
-        inplace: bool,
-        cpu_extensions: CpuExtensions,
-        checksum: int,
+    source_image: Image.Image,
+    inplace: bool,
+    cpu_extensions: CpuExtensions,
+    checksum: int,
 ):
     mul_div = AlphaMulDiv()
-    if cpu_extensions == CpuExtensions.avx2 and mul_div.cpu_extensions != CpuExtensions.avx2:
+    if (
+        cpu_extensions == CpuExtensions.avx2
+        and mul_div.cpu_extensions != CpuExtensions.avx2
+    ):
         raise pytest.skip('AVX2 instruction not supported by CPU')
     mul_div.cpu_extensions = cpu_extensions
 
@@ -70,7 +76,10 @@ def test_multiply_alpha_pil(
     ('cpu_extensions', 'checksum'),
     [
         (CpuExtensions.none, Checksum(1093599367, 1091535535, 1062524230, 2282335752)),
-        (CpuExtensions.sse4_1, Checksum(1093599367, 1091535535, 1062524230, 2282335752)),
+        (
+            CpuExtensions.sse4_1,
+            Checksum(1093599367, 1091535535, 1062524230, 2282335752),
+        ),
         (CpuExtensions.avx2, Checksum(1093599367, 1091535535, 1062524230, 2282335752)),
     ],
     ids=[
@@ -85,16 +94,19 @@ def test_multiply_alpha_pil(
         (False,),
         (True,),
     ],
-    ids=['not inplace', 'inplace']
+    ids=['not inplace', 'inplace'],
 )
 def test_divide_alpha_pil(
-        source_image: Image.Image,
-        inplace: bool,
-        cpu_extensions: CpuExtensions,
-        checksum: int,
+    source_image: Image.Image,
+    inplace: bool,
+    cpu_extensions: CpuExtensions,
+    checksum: int,
 ):
     mul_div = AlphaMulDiv()
-    if cpu_extensions == CpuExtensions.avx2 and mul_div.cpu_extensions != CpuExtensions.avx2:
+    if (
+        cpu_extensions == CpuExtensions.avx2
+        and mul_div.cpu_extensions != CpuExtensions.avx2
+    ):
         raise pytest.skip('AVX2 instruction not supported by CPU')
     mul_div.cpu_extensions = cpu_extensions
 
@@ -119,5 +131,5 @@ def test_divide_alpha_pil(
     save_result(
         res_image,
         Path('alpha_mul') / 'pil' / dir_name,
-        f'nasa-multiply-{cpu_extensions.name}.png'
+        f'nasa-multiply-{cpu_extensions.name}.png',
     )

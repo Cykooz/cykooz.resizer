@@ -10,9 +10,16 @@ from PIL.Image import Resampling
 from pytest_benchmark.stats import Metadata
 
 from cykooz.resizer import (
-    Algorithm, AlphaMulDiv, CpuExtensions, FilterType, ImageData,
-    PixelType, ResizeAlg, Resizer,
+    Algorithm,
+    AlphaMulDiv,
+    CpuExtensions,
+    FilterType,
+    ImageData,
+    PixelType,
+    ResizeAlg,
+    Resizer,
 )
+from cykooz.resizer.alpha import set_image_mode
 from utils import BenchResults
 
 
@@ -124,11 +131,12 @@ def test_resize_pillow(benchmark, pil_filter, source_image, results: BenchResult
 
 # cykooz.resizer - resize raw image
 
+
 def resize_raw(
-        alpha_mul_div: AlphaMulDiv,
-        resizer: Resizer,
-        src_image: ImageData,
-        dst_image: ImageData,
+    alpha_mul_div: AlphaMulDiv,
+    resizer: Resizer,
+    src_image: ImageData,
+    dst_image: ImageData,
 ):
     alpha_mul_div.multiply_alpha_inplace(src_image)
     resizer.resize(src_image, dst_image)
@@ -151,10 +159,11 @@ def test_resize_raw(benchmark, resizer, alpha_mul_div, source_image):
 
 # cykooz.resizer - resize PIL image
 
+
 def resize_pil(
-        resizer: Resizer,
-        src_image: Image.Image,
-        dst_image: Image.Image,
+    resizer: Resizer,
+    src_image: Image.Image,
+    dst_image: Image.Image,
 ):
     resizer.resize_pil(src_image, dst_image)
 
@@ -165,7 +174,7 @@ def test_resize_pil(benchmark, resizer: Resizer, source_image, results: BenchRes
     dst_image = Image.new('RGBA', DST_SIZE)
 
     def setup():
-        dst_image.mode = 'RGBA'
+        set_image_mode(dst_image, 'RGBA')
         return (resizer, source_image, dst_image), {}
 
     benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
@@ -187,6 +196,7 @@ def test_resize_pil(benchmark, resizer: Resizer, source_image, results: BenchRes
 
 # Pillow - U8
 
+
 def test_resize_pillow_u8(benchmark, pil_filter, source_image, results: BenchResults):
     if source_image.mode != 'L':
         source_image = source_image.convert('L')
@@ -205,21 +215,49 @@ def test_resize_pillow_u8(benchmark, pil_filter, source_image, results: BenchRes
 
 # cykooz.resizer - resize PIL U8 image
 
-def test_resize_pil_u8(benchmark, resize_alg, source_image, results: BenchResults):
-    resizer = Resizer(resize_alg)
-    resizer.cpu_extensions = CpuExtensions.none
+# def test_resize_pil_u8(benchmark, resize_alg, source_image, results: BenchResults):
+#     resizer = Resizer(resize_alg)
+#     resizer.cpu_extensions = CpuExtensions.none
+#
+#     if source_image.mode != 'L':
+#         source_image = source_image.convert('L')
+#     dst_image = Image.new('L', DST_SIZE)
+#
+#     def setup():
+#         set_image_mode(dst_image, 'L')
+#         return (resizer, source_image, dst_image), {}
+#
+#     benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
+#
+#     row_name = 'cykooz.resizer U8'
+#
+#     alg = resizer.algorithm.algorithm
+#     if alg == Algorithm.nearest:
+#         alg = 'nearest'
+#     else:
+#         alg = resizer.algorithm.filter_type.name
+#
+#     stats: Metadata = benchmark.stats
+#     value = stats.stats.mean * 1000
+#     results.add(row_name, alg, f'{value:.2f}')
 
+
+def test_resize_pil_u8(
+    benchmark, resizer: Resizer, source_image, results: BenchResults
+):
     if source_image.mode != 'L':
         source_image = source_image.convert('L')
     dst_image = Image.new('L', DST_SIZE)
 
     def setup():
-        dst_image.mode = 'L'
+        set_image_mode(dst_image, 'L')
         return (resizer, source_image, dst_image), {}
 
     benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
 
     row_name = 'cykooz.resizer U8'
+    if resizer.cpu_extensions != CpuExtensions.none:
+        row_name += f' - {resizer.cpu_extensions.name}'
 
     alg = resizer.algorithm.algorithm
     if alg == Algorithm.nearest:

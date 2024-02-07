@@ -91,7 +91,9 @@ class ResizeAlg:
         return res
 
     @classmethod
-    def super_sampling(cls, filter_type: FilterType, multiplicity: int = 2) -> 'ResizeAlg':
+    def super_sampling(
+        cls, filter_type: FilterType, multiplicity: int = 2
+    ) -> 'ResizeAlg':
         if not isinstance(multiplicity, int) or 255 < multiplicity < 2:
             raise ValueError('"multiplicity" must be integer value in range [2, 255]')
         res = cls()
@@ -116,9 +118,9 @@ class ResizeAlg:
         if not isinstance(other, self.__class__):
             return False
         return (
-                self._algorithm is other._algorithm
-                and self._filter_type is other._filter_type
-                and self._multiplicity == other._multiplicity
+            self._algorithm is other._algorithm
+            and self._filter_type is other._filter_type
+            and self._multiplicity == other._multiplicity
         )
 
     def __str__(self):
@@ -131,10 +133,10 @@ class ResizeAlg:
 
 @dataclasses.dataclass(frozen=True)
 class CropBox:
-    left: int
-    top: int
-    width: int
-    height: int
+    left: float
+    top: float
+    width: float
+    height: float
 
     def __post_init__(self):
         if self.left < 0 or self.top < 0:
@@ -144,10 +146,10 @@ class CropBox:
 
     @classmethod
     def get_crop_box_to_fit_dst_size(
-            cls,
-            src_size: Tuple[int, int],
-            dst_size: Tuple[int, int],
-            centering=(0.5, 0.5),
+        cls,
+        src_size: Tuple[int, int],
+        dst_size: Tuple[int, int],
+        centering=(0.5, 0.5),
     ) -> 'CropBox':
         """
         Returns a crop box to resize the source image into the
@@ -207,24 +209,32 @@ class CropBox:
         crop_top = (src_size[1] - crop_height) * centering[1]
 
         return cls(
-            int(round(crop_left)),
-            int(round(crop_top)),
-            int(round(crop_width)),
-            int(round(crop_height)),
+            crop_left,
+            crop_top,
+            crop_width,
+            crop_height,
         )
 
 
 class ImageData:
     __slots__ = ('rust_image',)
 
-    def __init__(self, width: int, height: int, pixel_type: PixelType, pixels: Optional[bytes] = None):
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        pixel_type: PixelType,
+        pixels: Optional[bytes] = None,
+    ):
         if width <= 0 or height <= 0:
             raise ValueError('"width" and "height" must be greater than zero')
         if pixels:
             pixel_size = PIXEL_SIZE[pixel_type]
             min_size = width * height * pixel_size
             if len(pixels) < min_size:
-                raise ValueError(f'Size of "pixels" must be greater or equal to {min_size} bytes')
+                raise ValueError(
+                    f'Size of "pixels" must be greater or equal to {min_size} bytes'
+                )
         self.rust_image = ImageView(width, height, pixel_type.value, pixels)
 
     @property
@@ -236,5 +246,5 @@ class ImageData:
         return self.rust_image.height()
 
     def get_buffer(self) -> bytes:
-        """Returns copy of internal buffer of pixels"""
+        """Returns copy of internal buffer with pixels"""
         return self.rust_image.buffer()

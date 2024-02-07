@@ -2,7 +2,8 @@
 .*
 !/.gitignore
 !/.github
+!/.ruff.toml
 /tests/data/result
-/cykooz/resizer/*.so
-/cykooz/resizer/*.pyd
-/cykooz/resizer/*.dll
+/python/cykooz/resizer/*.so
+/python/cykooz/resizer/*.pyd
+/python/cykooz/resizer/*.dll

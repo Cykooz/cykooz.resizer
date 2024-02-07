@@ -31,7 +31,6 @@ def get_image_checksum(buffer: bytes):
 
 
 class BenchResults:
-
     def __init__(self):
         self.columns = []
         self.rows = defaultdict(dict)
@@ -49,13 +48,15 @@ class BenchResults:
             for c_name in self.columns:
                 row.append(columns.get(c_name, ''))
             table.append(row)
-        print(tabulate(
-            table,
-            headers=headers,
-            tablefmt='pipe',
-            disable_numparse=True,
-            colalign=['left'] + ['right'] * len(self.columns),
-        ))
+        print(
+            tabulate(
+                table,
+                headers=headers,
+                tablefmt='pipe',
+                disable_numparse=True,
+                colalign=['left'] + ['right'] * len(self.columns),
+            )
+        )
 
 
 def save_result(image: Image.Image, rel_path: Path, file_name):

@@ -9,7 +9,14 @@ import pytest
 from PIL import Image
 
 from cykooz.resizer import (
-    AlphaMulDiv, CpuExtensions, CropBox, FilterType, ImageData, PixelType, ResizeAlg, Resizer
+    AlphaMulDiv,
+    CpuExtensions,
+    CropBox,
+    FilterType,
+    ImageData,
+    PixelType,
+    ResizeAlg,
+    Resizer,
 )
 from utils import Checksum, get_image_checksum, save_result
 
@@ -25,9 +32,9 @@ def test_resizer_settings():
 @pytest.mark.parametrize(
     ('cpu_extensions', 'checksum'),
     [
-        (CpuExtensions.none, Checksum(3032533, 3011520, 2921736, 6122818)),
-        (CpuExtensions.sse4_1, Checksum(3032533, 3011520, 2921736, 6122818)),
-        (CpuExtensions.avx2, Checksum(3032533, 3011520, 2921736, 6122818)),
+        (CpuExtensions.none, Checksum(3036793, 3014851, 2921820, 6122718)),
+        (CpuExtensions.sse4_1, Checksum(3036793, 3014851, 2921820, 6122718)),
+        (CpuExtensions.avx2, Checksum(3036793, 3014851, 2921820, 6122718)),
     ],
     ids=[
         'wo forced SIMD',
@@ -43,10 +50,10 @@ def test_resizer_settings():
     ],
 )
 def test_resizer(
-        source_image: Image.Image,
-        source: str,
-        cpu_extensions: CpuExtensions,
-        checksum: Checksum,
+    source_image: Image.Image,
+    source: str,
+    cpu_extensions: CpuExtensions,
+    checksum: Checksum,
 ):
     """Resize raw image."""
     image = source_image.copy()
@@ -65,22 +72,22 @@ def test_resizer(
 
 
 def _resize_raw(
-        cpu_extensions: CpuExtensions,
-        src_image: Image.Image,
-        dst_size: Tuple[int, int],
-        checksum: Checksum,
+    cpu_extensions: CpuExtensions,
+    src_image: Image.Image,
+    dst_size: Tuple[int, int],
+    checksum: Checksum,
 ) -> Image.Image:
     src_image = ImageData(
-        src_image.width,
-        src_image.height,
-        PixelType.U8x4,
-        src_image.tobytes('raw')
+        src_image.width, src_image.height, PixelType.U8x4, src_image.tobytes('raw')
     )
     dst_image = ImageData(dst_size[0], dst_size[1], PixelType.U8x4)
     assert get_image_checksum(dst_image.get_buffer()) == Checksum(0, 0, 0, 0)
 
     resizer = Resizer(ResizeAlg.convolution(FilterType.lanczos3))
-    if cpu_extensions == CpuExtensions.avx2 and resizer.cpu_extensions != CpuExtensions.avx2:
+    if (
+        cpu_extensions == CpuExtensions.avx2
+        and resizer.cpu_extensions != CpuExtensions.avx2
+    ):
         raise pytest.skip('AVX2 instruction not supported by CPU')
     resizer.cpu_extensions = cpu_extensions
     mul_div = AlphaMulDiv()
@@ -101,16 +108,19 @@ def _resize_raw(
 
 
 def _resize_pil(
-        cpu_extensions: CpuExtensions,
-        src_image: Image.Image,
-        dst_size: Tuple[int, int],
-        checksum: Checksum,
+    cpu_extensions: CpuExtensions,
+    src_image: Image.Image,
+    dst_size: Tuple[int, int],
+    checksum: Checksum,
 ) -> Image.Image:
     dst_image = Image.new('RGBA', dst_size)
     assert get_image_checksum(dst_image.tobytes('raw')) == Checksum(0, 0, 0, 0)
 
     resizer = Resizer(ResizeAlg.convolution(FilterType.lanczos3))
-    if cpu_extensions == CpuExtensions.avx2 and resizer.cpu_extensions != CpuExtensions.avx2:
+    if (
+        cpu_extensions == CpuExtensions.avx2
+        and resizer.cpu_extensions != CpuExtensions.avx2
+    ):
         raise pytest.skip('AVX2 instruction not supported by CPU')
     resizer.cpu_extensions = cpu_extensions
 
@@ -145,10 +155,7 @@ def test_image_modes(source_image: Image.Image, src_mode, dst_mode):
         source_image = source_image.convert(src_mode)
     resizer = Resizer(ResizeAlg.super_sampling(FilterType.lanczos3, 2))
     resizer.cpu_extensions = CpuExtensions.none
-    dst_size = (
-        int(round(source_image.width / 8)),
-        int(round(source_image.height / 8))
-    )
+    dst_size = (int(round(source_image.width / 8)), int(round(source_image.height / 8)))
     dst_image = Image.new(dst_mode, dst_size)
     resizer.resize_pil(source_image, dst_image)
 

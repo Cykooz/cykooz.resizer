@@ -35,8 +35,12 @@ pub(crate) fn pixel_type_from_u8(pixel_type: u8) -> PixelType {
 pub(crate) fn cpu_extensions_from_u8(extensions: u8) -> fr::CpuExtensions {
     match extensions {
         1 => fr::CpuExtensions::None,
+        #[cfg(target_arch = "x86_64")]
         2 => fr::CpuExtensions::Sse4_1,
+        #[cfg(target_arch = "x86_64")]
         3 => fr::CpuExtensions::Avx2,
+        #[cfg(target_arch = "aarch64")]
+        4 => fr::CpuExtensions::Neon,
         _ => Default::default(),
     }
 }
@@ -44,7 +48,11 @@ pub(crate) fn cpu_extensions_from_u8(extensions: u8) -> fr::CpuExtensions {
 pub(crate) fn cpu_extensions_to_u8(extensions: fr::CpuExtensions) -> u8 {
     match extensions {
         fr::CpuExtensions::None => 1,
+        #[cfg(target_arch = "x86_64")]
         fr::CpuExtensions::Sse4_1 => 2,
+        #[cfg(target_arch = "x86_64")]
         fr::CpuExtensions::Avx2 => 3,
+        #[cfg(target_arch = "aarch64")]
+        fr::CpuExtensions::Neon => 4,
     }
 }

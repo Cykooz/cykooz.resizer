@@ -9,22 +9,19 @@ try:
 except ImportError:
     PilImage = None
 
-from .alpha import AlphaMulDiv
+from .alpha import AlphaMulDiv, set_image_mode
 from .rust_lib import PilImageView, RustResizer
 from .structs import Algorithm, CpuExtensions, CropBox, FilterType, ResizeAlg, ImageData
 
 
 class Resizer:
-
     def __init__(self, resize_alg: ResizeAlg):
         filter_type = resize_alg.filter_type
         filter_type = filter_type.value if filter_type else 0
         multiplicity = resize_alg.multiplicity
         multiplicity = multiplicity if multiplicity else 2
         self._rust_resizer = RustResizer(
-            resize_alg.algorithm.value,
-            filter_type,
-            multiplicity
+            resize_alg.algorithm.value, filter_type, multiplicity
         )
         self._alpha_mul_div = AlphaMulDiv()
 
@@ -55,9 +52,7 @@ class Resizer:
         multiplicity = resize_alg.multiplicity
         multiplicity = multiplicity if multiplicity else 2
         self._rust_resizer.set_algorithm(
-            resize_alg.algorithm.value,
-            filter_type,
-            multiplicity
+            resize_alg.algorithm.value, filter_type, multiplicity
         )
 
     @property
@@ -77,10 +72,10 @@ class Resizer:
         self._rust_resizer.resize(src_image.rust_image, dst_image.rust_image)
 
     def resize_pil(
-            self,
-            src_image: 'PilImage.Image',
-            dst_image: 'PilImage.Image',
-            crop_box: Optional[CropBox] = None,
+        self,
+        src_image: 'PilImage.Image',
+        dst_image: 'PilImage.Image',
+        crop_box: Optional[CropBox] = None,
     ):
         """Resize source image into size of destination image and store result
         into buffer of destination image.
@@ -92,11 +87,13 @@ class Resizer:
         orig_src_image = src_image
 
         if src_mode != dst_mode:
-            if src_mode in ('CMYK', 'I', 'F', 'L') or dst_mode not in ('RGB', 'RGBa', 'RGBA'):
+            if src_mode in ('CMYK', 'I', 'F', 'L') or dst_mode not in (
+                'RGB',
+                'RGBa',
+                'RGBA',
+            ):
                 src_image = self._convert(
-                    src_image,
-                    dst_mode,
-                    in_place=orig_src_image is not src_image
+                    src_image, dst_mode, in_place=orig_src_image is not src_image
                 )
                 src_mode = src_image.mode
 
@@ -112,7 +109,7 @@ class Resizer:
                 crop_box.width,
                 crop_box.height,
             )
-        dst_image.mode = src_image.mode
+        set_image_mode(dst_image, src_image.mode)
         dst_view = PilImageView(dst_image)
 
         self._rust_resizer.resize_pil(src_view, dst_view)
@@ -122,11 +119,13 @@ class Resizer:
         elif src_mode == 'RGBA' and dst_mode == 'RGBa':
             self._alpha_mul_div.multiply_alpha_pil_inplace(dst_image)
         elif src_mode in ('RGBa', 'RGBA') and dst_mode == 'RGB':
-            dst_image.mode = 'RGB'
+            set_image_mode(dst_image, 'RGB')
         elif src_mode == 'RGB' and dst_mode in ('RGBa', 'RGBA'):
-            dst_image.mode = dst_mode
+            set_image_mode(dst_image, dst_mode)
 
-    def _convert(self, image: 'PilImage.Image', mode: str, in_place=False) -> 'PilImage.Image':
+    def _convert(
+        self, image: 'PilImage.Image', mode: str, in_place=False
+    ) -> 'PilImage.Image':
         img_mode = image.mode
         if img_mode == mode:
             return image
@@ -135,7 +134,7 @@ class Resizer:
             if mode in ('RGBA', 'RGBa'):
                 if not in_place:
                     image = image.copy()
-                image.mode = mode
+                set_image_mode(image, mode)
                 return image
         elif img_mode == 'RGBa':
             if mode == 'RGBA':
@@ -144,7 +143,7 @@ class Resizer:
 
         if mode == 'RGBa':
             image = image.convert('RGB')
-            image.mode = 'RGBa'
+            set_image_mode(image, 'RGBa')
             return image
 
         if img_mode == 'CMYK' and mode in ('I', 'F'):

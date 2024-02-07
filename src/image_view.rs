@@ -52,12 +52,12 @@ impl ImageView {
         })
     }
 
-    fn set_crop_box(&mut self, left: u32, top: u32, width: u32, height: u32) -> PyResult<()> {
+    fn set_crop_box(&mut self, left: f64, top: f64, width: f64, height: f64) -> PyResult<()> {
         self.crop_box = Some(fir::CropBox {
             left,
             top,
-            width: into_non_zero(width)?,
-            height: into_non_zero(height)?,
+            width,
+            height,
         });
         Ok(())
     }
@@ -81,7 +81,7 @@ impl ImageView {
 }
 
 impl ImageView {
-    pub(crate) fn src_image_view(&self) -> PyResult<fir::ImageView> {
+    pub(crate) fn src_image_view(&self) -> PyResult<fir::DynamicImageView> {
         let mut src_image_view = self.image.view();
         if let Some(crop_box) = self.crop_box {
             result2pyresult(src_image_view.set_crop_box(crop_box))?;
@@ -89,7 +89,7 @@ impl ImageView {
         Ok(src_image_view)
     }
 
-    pub(crate) fn dst_image_view(&mut self) -> fir::ImageViewMut {
+    pub(crate) fn dst_image_view(&mut self) -> fir::DynamicImageViewMut {
         self.image.view_mut()
     }
 }

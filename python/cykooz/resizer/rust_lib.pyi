@@ -1,50 +1,29 @@
-""" This module is a python module implemented in Rust. """
+""" This module is the python module implemented in Rust. """
 from typing import Optional, Tuple
 
 from PIL import Image
 
-
 class ImageView:
-
     def __init__(
-            self,
-            width: int,
-            height: int,
-            pixel_type: int,
-            buffer: Optional[bytes],
-    ):
-        ...
-
-    def set_crop_box(self, left: int, top: int, width: int, height: int):
-        ...
-
-    def width(self) -> int:
-        ...
-
-    def height(self) -> int:
-        ...
-
-    def buffer(self) -> bytes:
-        ...
-
+        self,
+        width: int,
+        height: int,
+        pixel_type: int,
+        buffer: Optional[bytes],
+    ): ...
+    def set_crop_box(self, left: float, top: float, width: float, height: float): ...
+    def width(self) -> int: ...
+    def height(self) -> int: ...
+    def buffer(self) -> bytes: ...
 
 class PilImageView:
-
-    def __init__(self, image: Image.Image):
-        ...
-
-    def set_crop_box(self, left: int, top: int, width: int, height: int):
-        ...
-
+    def __init__(self, image: Image.Image): ...
+    def set_crop_box(self, left: float, top: float, width: float, height: float): ...
     @property
-    def pil_image(self) -> Optional[Image.Image]:
-        ...
+    def pil_image(self) -> Optional[Image.Image]: ...
 
 class RustAlphaMulDiv:
-
-    def __init__(self):
-        ...
-
+    def __init__(self): ...
     def get_cpu_extensions(self) -> int:
         """Returns CPU extensions."""
         ...
@@ -97,18 +76,14 @@ class RustAlphaMulDiv:
         """Multiplies RGB-channels of image by alpha-channel inplace."""
         ...
 
-
 class RustResizer:
-
-    def __init__(self, algorithm: int, filter_type: int, multiplicity: int):
-        ...
-
+    def __init__(self, algorithm: int, filter_type: int, multiplicity: int): ...
     def get_algorithm(self) -> Tuple[int, int, int]:
         """Returns resize algorithm."""
         ...
 
     def set_algorithm(self, algorithm: int, filter_type: int, multiplicity: int):
-        """ Set resize algorithm. """
+        """Set resize algorithm."""
         ...
 
     def get_cpu_extensions(self) -> int:
@@ -126,7 +101,6 @@ class RustResizer:
     def resize_pil(self, src_image: PilImageView, dst_image: PilImageView):
         """Resize source image into destination image."""
         ...
-
 
 # variables with complex values
 

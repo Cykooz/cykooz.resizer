@@ -12,7 +12,6 @@ from .structs import CpuExtensions, ImageData
 
 
 class AlphaMulDiv:
-
     def __init__(self):
         self._rust_alpha_mul_div = RustAlphaMulDiv()
 
@@ -64,7 +63,7 @@ class AlphaMulDiv:
             image._copy()
         image_view = PilImageView(image)
         self._rust_alpha_mul_div.multiply_alpha_pil_inplace(image_view)
-        image.mode = 'RGBa'
+        set_image_mode(image, 'RGBa')
 
     def divide_alpha_pil(self, image: 'PilImage.Image') -> 'PilImage.Image':
         if image.mode == 'RGBA':
@@ -86,4 +85,12 @@ class AlphaMulDiv:
             image._copy()
         image_view = PilImageView(image)
         self._rust_alpha_mul_div.divide_alpha_pil_inplace(image_view)
-        image.mode = 'RGBA'
+        set_image_mode(image, 'RGBA')
+
+
+def set_image_mode(image: 'PilImage.Image', mode: str):
+    if hasattr(image, '_mode'):
+        image._mode = mode
+    else:
+        # Support Pillow < 10.1.0
+        image.mode = mode

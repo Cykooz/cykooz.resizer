@@ -10,18 +10,9 @@ name = "rust_lib"
 crate-type = ["cdylib"]
 
 
-[package.metadata.maturin]
-name = "cykooz.resizer.rust_lib"
-
-
 [dependencies]
-fast_image_resize = "1.0.0"
-pyo3 = "0.17.2"
-
-
-[features]
-extension-module = ["pyo3/extension-module"]
-default = ["extension-module"]
+fast_image_resize = "3.0.2"
+pyo3 = "0.20.2"
 
 
 [profile.release]

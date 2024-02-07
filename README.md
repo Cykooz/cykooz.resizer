@@ -1,6 +1,6 @@
 # cykooz.resizer
 
-```cykooz.resizer``` is package with optimized version of image resizing
+```cykooz.resizer``` is package with the optimized version of image resizing
 based on Rust's crate [fast_image_resize](https://crates.io/crates/fast_image_resize).
 
 [CHANGELOG](https://github.com/Cykooz/cykooz.resizer/blob/main/CHANGES.md)
@@ -21,18 +21,18 @@ python3 -m pip install cykooz.resizer[pillow]
 
 Supported pixel types and available optimisations:
 
-| Format | Description                                                   | Native Rust | SSE4.1  | AVX2 |
-|:------:|:--------------------------------------------------------------|:-----------:|:-------:|:----:|
-|   U8   | One `u8` component per pixel (e.g. L)                         |      +      | partial |  +   |
-|  U8x2  | Two `u8` components per pixel (e.g. LA)                       |      +      |    +    |  +   |
-|  U8x3  | Three `u8` components per pixel (e.g. RGB)                    |      +      | partial |  +   |
-|  U8x4  | Four `u8` components per pixel (e.g. RGBA, RGBx, CMYK)        |      +      |    +    |  +   |
-|  U16   | One `u16` components per pixel (e.g. L16)                     |      +      |    +    |  +   |
-| U16x2  | Two `u16` components per pixel (e.g. LA16)                    |      +      |    +    |  +   |
-| U16x3  | Three `u16` components per pixel (e.g. RGB16)                 |      +      |    +    |  +   |
-| U16x4  | Four `u16` components per pixel (e.g. RGBA16, RGBx16, CMYK16) |      +      |    +    |  +   |
-|  I32   | One `i32` component per pixel                                 |      +      |    -    |  -   |
-|  F32   | One `f32` component per pixel                                 |      +      |    -    |  -   |
+| Format | Description                                                   | SSE4.1 | AVX2 | Neon |
+|:------:|:--------------------------------------------------------------|:------:|:----:|:----:|
+|   U8   | One `u8` component per pixel (e.g. L)                         |   +    |  +   |  +   |
+|  U8x2  | Two `u8` components per pixel (e.g. LA)                       |   +    |  +   |  +   |
+|  U8x3  | Three `u8` components per pixel (e.g. RGB)                    |   +    |  +   |  +   |
+|  U8x4  | Four `u8` components per pixel (e.g. RGBA, RGBx, CMYK)        |   +    |  +   |  +   |
+|  U16   | One `u16` components per pixel (e.g. L16)                     |   +    |  +   |  +   |
+| U16x2  | Two `u16` components per pixel (e.g. LA16)                    |   +    |  +   |  +   |
+| U16x3  | Three `u16` components per pixel (e.g. RGB16)                 |   +    |  +   |  +   |
+| U16x4  | Four `u16` components per pixel (e.g. RGBA16, RGBx16, CMYK16) |   +    |  +   |  +   |
+|  I32   | One `i32` component per pixel                                 |   -    |  -   |  -   |
+|  F32   | One `f32` component per pixel                                 |   -    |  -   |  -   |
 
 Implemented resize algorithms:
 - Nearest - is nearest-neighbor interpolation, replacing every pixel with the 
@@ -44,8 +44,8 @@ Implemented resize algorithms:
   - catmull_rom
   - mitchell
   - lanczos3
-- Super sampling - resizing an image in two steps.
-  First step uses the "nearest" algorithm. Second step uses "convolution" 
+- Super sampling - is resizing an image in two steps.
+  The first step uses the "nearest" algorithm. The second step uses "convolution" 
   with configurable filter.
 
 
@@ -69,7 +69,7 @@ for i in range(1, 10):
     dst_image.save('nasa_%d-255x170.png' % i)
 ```
 
-### Resize raw image with alpha channel
+### Resize raw image with an alpha channel
 
 ```python
 from cykooz.resizer import AlphaMulDiv, FilterType, ImageData, PixelType, ResizeAlg, Resizer
@@ -106,13 +106,13 @@ resizer.cpu_extensions = CpuExtensions.sse4_1
 Environment:
 - CPU: AMD Ryzen 9 5950X
 - RAM: DDR4 3800 MHz
-- Ubuntu 22.04 (linux 5.15.0)
-- Python 3.9
-- Rust 1.62.0
-- cykooz.resizer = "2.1"
+- Ubuntu 22.04 (linux 6.5.0)
+- Python 3.10
+- Rust 1.75.0
+- cykooz.resizer = "2.2"
 
 Other Python libraries used to compare of resizing speed:
-- Pillow = "9.2.0" (https://pypi.org/project/Pillow/)
+- Pillow = "10.2.0" (https://pypi.org/project/Pillow/)
 
 Resize algorithms:
 - Nearest
@@ -123,12 +123,12 @@ Resize algorithms:
 
 - Source image [nasa-4928x3279.png](https://github.com/Cykooz/cykooz.resizer/blob/main/tests/data/nasa-4928x3279.png)
 
-| Package (time in ms)    |   nearest |   bilinear |   lanczos3 |
-|:------------------------|----------:|-----------:|-----------:|
-| Pillow                  |      0.66 |      93.16 |     179.96 |
-| cykooz.resizer          |      0.20 |      39.19 |      76.71 |
-| cykooz.resizer - sse4_1 |      0.20 |      15.60 |      25.16 |
-| cykooz.resizer - avx2   |      0.20 |      11.95 |      18.54 |
+| Package (time in ms)       | nearest | bilinear | lanczos3 |
+|:---------------------------|--------:|---------:|---------:|
+| Pillow                     |    0.88 |   105.27 |   200.80 |
+| cykooz.resizer             |    0.20 |    29.64 |    58.83 |
+| cykooz.resizer - sse4_1    |    0.20 |    14.83 |    27.87 |
+| cykooz.resizer - avx2      |    0.20 |    10.44 |    21.34 |
 
 
 ### Resize grayscale (U8) image 4928x3279 => 852x567
@@ -136,7 +136,9 @@ Resize algorithms:
 - Source image [nasa-4928x3279.png](https://github.com/Cykooz/cykooz.resizer/blob/main/tests/data/nasa-4928x3279.png)
   has converted into grayscale image with one byte per pixel.
 
-| Package (time in ms) |   nearest |   bilinear |   lanczos3 |
-|:---------------------|----------:|-----------:|-----------:|
-| Pillow               |      0.28 |      20.73 |      51.07 |
-| cykooz.resizer       |      0.19 |      14.31 |      23.84 |
+| Package (time in ms)       | nearest | bilinear | lanczos3 |
+|:---------------------------|--------:|---------:|---------:|
+| Pillow U8                  |    0.27 |    23.78 |    61.23 |
+| cykooz.resizer U8          |    0.17 |     5.29 |    11.44 |
+| cykooz.resizer U8 - sse4_1 |    0.17 |     2.30 |     5.90 |
+| cykooz.resizer U8 - avx2   |    0.17 |     1.85 |     4.17 |
