@@ -170,3 +170,5 @@ jobs:
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
+        with:
+          delete-merged: true
