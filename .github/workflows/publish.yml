@@ -40,7 +40,7 @@ jobs:
         if: ${{ matrix.python-version == '3.11' }}
         run: |
           mkdir tmp
-          cp -rf cykooz src Cargo.lock *.toml *.md LICENSE-APACHE LICENSE-MIT tmp/
+          cp -rf python src Cargo.lock *.toml *.md LICENSE-APACHE LICENSE-MIT tmp/
           cd tmp
           maturin sdist -o ../dist
           cd ..

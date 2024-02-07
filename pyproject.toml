@@ -33,7 +33,8 @@ url = "https://github.com/Cykooz/cykooz.resizer"
 [project.optional-dependencies]
 dev = [
     "wheel",
-    "maturin[zig,patchelf]",
+    "maturin[zig]",
+    "maturin[zig,patchelf]; platform_system == 'Linux'",
     "pytest",
     'pytest-benchmark',
     "Pillow",
