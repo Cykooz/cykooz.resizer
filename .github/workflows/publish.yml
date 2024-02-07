@@ -36,23 +36,14 @@ jobs:
         run: |
           pytest --benchmark-skip -vv
 
-      - name: Build sdist
-        if: ${{ matrix.python-version == '3.11' }}
-        run: |
-          mkdir tmp
-          cp -rf python src Cargo.lock *.toml *.md LICENSE-APACHE LICENSE-MIT tmp/
-          cd tmp
-          maturin sdist -o ../dist
-          cd ..
-
-      - name: Build Wheels
+      - name: Build sdist and wheels
         if: ${{ matrix.python-version == '3.12' }}
         uses: PyO3/maturin-action@v1
         with:
           maturin-version: latest
           target: x86_64
           manylinux: auto
-          args: --release --strip --out dist -i 3.7 3.8 3.9 3.10 3.11 3.12
+          args: --sdist --release --strip --out dist -i 3.7 3.8 3.9 3.10 3.11 3.12
 
       - name: Install built wheel
         if: ${{ matrix.python-version == '3.12' }}
@@ -62,7 +53,7 @@ jobs:
           python -c "import cykooz.resizer"
           cd ..
 
-      - name: Upload wheels
+      - name: Upload sdist and wheels
         if: ${{ matrix.python-version == '3.12' }}
         uses: actions/upload-artifact@v4
         with:
