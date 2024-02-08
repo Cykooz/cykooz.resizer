@@ -19,11 +19,7 @@ jobs:
           architecture: x64
 
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install dev packages
         run: |
@@ -76,12 +72,9 @@ jobs:
           architecture: "x64"
 
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          target: "x86_64-pc-windows-msvc"
-          profile: minimal
-          default: true
+          targets: "x86_64-pc-windows-msvc"
 
       - name: Install dev packages
         run: |
@@ -127,12 +120,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           target: "x86_64-apple-darwin"
-          profile: minimal
-          default: true
 
       - name: Install dev packages
         run: |
