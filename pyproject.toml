@@ -5,7 +5,7 @@ build-backend = "maturin"
 
 [project]
 name = "cykooz.resizer"
-version = "2.2.0"
+version = "2.2.1"
 description = "A fast image resizer"
 readme = "README.md"
 classifiers = [
