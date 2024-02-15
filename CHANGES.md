@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## [2.2.0] - Unreleased
+## [2.2.1] - 2024-02-15
+
+- Fixed error with incorrect cropping of source image.
+
+## [2.2.0] - 2024-02-08
 
 - Added support of ``Pillow`` >= 10.1.0.
 - Updated version of ``pyo3`` to 0.20.2.
