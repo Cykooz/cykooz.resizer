@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Updated version of ``pyo3`` to 0.21.2.
+
 ## [2.2.1] - 2024-02-15
 
 - Fixed error with incorrect cropping of source image.
@@ -18,7 +22,7 @@
 
 ## [2.1.1] - 2022-07-17
 
-- Fixed resizing when the destination image has the same dimensions 
+- Fixed resizing when the destination image has the same dimensions
   as the source image.
 
 ## [2.1] - 2022-07-07
@@ -30,7 +34,7 @@
 - Dropped support for Python 3.6.
 - Deleted variant `sse2` from enum `CpuExtensions`.
 - Added support of new pixel types: `U8x3` and `U16x3`.
-- Added optimization for convolution grayscale images (`U8`) 
+- Added optimization for convolution grayscale images (`U8`)
   with helps of `SSE4.1` and `AVX2` instructions.
 
 ## [1.1] - 2021-10-28

@@ -72,7 +72,7 @@ impl ImageView {
 
     fn buffer(&self, py: Python) -> PyResult<PyObject> {
         let image_buffer = self.image.buffer();
-        PyBytes::new_with(py, image_buffer.len(), |dst_buffer| {
+        PyBytes::new_bound_with(py, image_buffer.len(), |dst_buffer| {
             dst_buffer.copy_from_slice(image_buffer);
             Ok(())
         })

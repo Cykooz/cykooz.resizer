@@ -69,7 +69,7 @@ impl RustResizer {
         let filter_type = filter_type.to_object(py);
         let multiplicity = multiplicity.to_object(py);
 
-        let res: PyObject = PyTuple::new(py, &[algorithm, filter_type, multiplicity]).into();
+        let res: PyObject = PyTuple::new_bound(py, &[algorithm, filter_type, multiplicity]).into();
         Ok(res)
     }
 

@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 fast_image_resize = "3.0.4"
-pyo3 = "0.20.2"
+pyo3 = "0.21.2"
 
 
 [profile.release]
