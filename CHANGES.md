@@ -16,6 +16,7 @@
       and `Resizer.resize_pil()` methods to change resize algorythm.
     - `Resizer`, by default, multiplies and divides color channels of image by
       an alpha channel. You may change this behavior through `options` argument.
+    - Deleted support of Python 3.7.
 
 ## [2.2.1] - 2024-02-15
 
