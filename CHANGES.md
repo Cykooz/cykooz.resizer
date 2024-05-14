@@ -1,8 +1,21 @@
 # CHANGELOG
 
-## Unreleased
+## [3.0.0] - Unreleased
 
+- Updated version of ``fast_image_resize`` to 4.0.0.
+- Added support of `Neon` CPU-instructions to speedup image resizing
+  on ARM architecture.
+- Added optional argument `options: ResizeOptions` into `Resizer.resize()`
+  and `Resizer.resize_pil()` methods.
+- Added support for images with zero sizes (width or/and height).
+- Added `FilterType.gaussian` filter for convolution resize algorythm.
 - Updated version of ``pyo3`` to 0.21.2.
+- **BREAKING CHANGES:**
+    - Argument `resize_alg` was removed from `Resizer.__init__()` method.
+      You have to use `options` argument of `Resizer.resize()`
+      and `Resizer.resize_pil()` methods to change resize algorythm.
+    - `Resizer`, by default, multiplies and divides color channels of image by
+      an alpha channel. You may change this behavior through `options` argument.
 
 ## [2.2.1] - 2024-02-15
 

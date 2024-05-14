@@ -1,77 +1,49 @@
-use fast_image_resize as fir;
-use fast_image_resize::pixels::PixelType;
+use fast_image_resize::images::Image as FirImage;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
-use crate::utils::{into_non_zero, pixel_type_from_u8, result2pyresult};
+use crate::utils::{pixel_type_from_u8, result2pyresult};
 
 #[pyclass]
-pub struct ImageView {
-    image: fir::Image<'static>,
-    crop_box: Option<fir::CropBox>,
-}
+pub struct Image(FirImage<'static>);
 
 #[pymethods]
-impl ImageView {
+impl Image {
     #[new]
     fn new(width: u32, height: u32, pixel_type: u8, buffer: Option<&[u8]>) -> PyResult<Self> {
-        let width = into_non_zero(width)?;
-        let height = into_non_zero(height)?;
         let pixel_type = pixel_type_from_u8(pixel_type);
-        let pixel_size = match pixel_type {
-            PixelType::U8 => 1,
-            PixelType::U8x2 => 2,
-            PixelType::U8x3 => 3,
-            PixelType::U16 => 2,
-            PixelType::U16x2 => 4,
-            PixelType::U16x3 => 6,
-            PixelType::U16x4 => 8,
-            _ => 4,
-        };
+        let pixel_size = pixel_type.size();
         let image = if let Some(buffer) = buffer {
-            let buffer_size = (width.get() * height.get()) as usize * pixel_size;
+            let buffer_size = (width * height) as usize * pixel_size;
             if buffer.len() < buffer_size {
                 return result2pyresult(Err(format!(
                     "Size of 'buffer' must be greater or equal to {} bytes",
                     buffer_size
                 )));
             }
-            result2pyresult(fir::Image::from_vec_u8(
+            result2pyresult(FirImage::from_vec_u8(
                 width,
                 height,
                 buffer.to_vec(),
                 pixel_type,
             ))?
         } else {
-            fir::Image::new(width, height, pixel_type)
+            FirImage::new(width, height, pixel_type)
         };
 
-        Ok(Self {
-            image,
-            crop_box: None,
-        })
-    }
-
-    fn set_crop_box(&mut self, left: f64, top: f64, width: f64, height: f64) -> PyResult<()> {
-        self.crop_box = Some(fir::CropBox {
-            left,
-            top,
-            width,
-            height,
-        });
-        Ok(())
+        Ok(Self(image))
     }
 
     fn width(&self) -> u32 {
-        self.image.width().get()
+        self.0.width()
     }
 
     fn height(&self) -> u32 {
-        self.image.height().get()
+        self.0.height()
     }
 
     fn buffer(&self, py: Python) -> PyResult<PyObject> {
-        let image_buffer = self.image.buffer();
+        let image_buffer = self.0.buffer();
         PyBytes::new_bound_with(py, image_buffer.len(), |dst_buffer| {
             dst_buffer.copy_from_slice(image_buffer);
             Ok(())
@@ -80,16 +52,12 @@ impl ImageView {
     }
 }
 
-impl ImageView {
-    pub(crate) fn src_image_view(&self) -> PyResult<fir::DynamicImageView> {
-        let mut src_image_view = self.image.view();
-        if let Some(crop_box) = self.crop_box {
-            result2pyresult(src_image_view.set_crop_box(crop_box))?;
-        }
-        Ok(src_image_view)
+impl Image {
+    pub(crate) fn src_image_view(&self) -> &FirImage<'static> {
+        &self.0
     }
 
-    pub(crate) fn dst_image_view(&mut self) -> fir::DynamicImageViewMut {
-        self.image.view_mut()
+    pub(crate) fn dst_image_view(&mut self) -> &mut FirImage<'static> {
+        &mut self.0
     }
 }

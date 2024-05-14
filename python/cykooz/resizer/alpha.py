@@ -7,7 +7,7 @@ try:
 except ImportError:
     PilImage = None
 
-from .rust_lib import PilImageView, RustAlphaMulDiv
+from .rust_lib import PilImageWrapper, RustAlphaMulDiv
 from .structs import CpuExtensions, ImageData
 
 
@@ -48,9 +48,9 @@ class AlphaMulDiv:
         elif image.mode != 'RGBA':
             raise ValueError('Unsupported mode of source image.')
 
-        src_view = PilImageView(image)
+        src_view = PilImageWrapper(image)
         dst_img = PilImage.new('RGBa', image.size)
-        dst_view = PilImageView(dst_img)
+        dst_view = PilImageWrapper(dst_img)
         self._rust_alpha_mul_div.multiply_alpha_pil(src_view, dst_view)
         return dst_img
 
@@ -61,7 +61,7 @@ class AlphaMulDiv:
             raise ValueError('Unsupported mode of source image.')
         if image.readonly:
             image._copy()
-        image_view = PilImageView(image)
+        image_view = PilImageWrapper(image)
         self._rust_alpha_mul_div.multiply_alpha_pil_inplace(image_view)
         set_image_mode(image, 'RGBa')
 
@@ -70,9 +70,9 @@ class AlphaMulDiv:
             return image.copy()
         elif image.mode != 'RGBa':
             raise ValueError('Unsupported mode of source image.')
-        src_view = PilImageView(image)
+        src_view = PilImageWrapper(image)
         dst_img = PilImage.new('RGBA', image.size)
-        dst_view = PilImageView(dst_img)
+        dst_view = PilImageWrapper(dst_img)
         self._rust_alpha_mul_div.divide_alpha_pil(src_view, dst_view)
         return dst_img
 
@@ -83,7 +83,7 @@ class AlphaMulDiv:
             raise ValueError('Unsupported mode of source image.')
         if image.readonly:
             image._copy()
-        image_view = PilImageView(image)
+        image_view = PilImageWrapper(image)
         self._rust_alpha_mul_div.divide_alpha_pil_inplace(image_view)
         set_image_mode(image, 'RGBA')
 

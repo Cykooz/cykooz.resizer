@@ -6,7 +6,7 @@ import weakref
 
 from PIL import Image
 
-from cykooz.resizer.rust_lib import PilImageView
+from cykooz.resizer.rust_lib import PilImageWrapper
 
 
 def test_pillow_image_view_gc():
@@ -19,7 +19,7 @@ def test_pillow_image_view_gc():
     image = Image.new('RGBA', (256, 256))
     image_ref = weakref.ref(image)
     assert image_ref() is not None
-    _image_view = PilImageView(image)
+    _image_view = PilImageWrapper(image)
     assert image_ref() is not None
     del image
     assert image_ref() is not None

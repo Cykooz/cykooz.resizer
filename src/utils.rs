@@ -1,5 +1,4 @@
 use std::fmt::Display;
-use std::num::NonZeroU32;
 
 use fast_image_resize as fr;
 use fast_image_resize::pixels::PixelType;
@@ -9,11 +8,6 @@ use pyo3::prelude::*;
 #[inline]
 pub(crate) fn result2pyresult<T, E: Display>(res: Result<T, E>) -> PyResult<T> {
     res.map_err(|err| PyErr::new::<exceptions::PyRuntimeError, _>(err.to_string()))
-}
-
-#[inline]
-pub(crate) fn into_non_zero(v: u32) -> PyResult<NonZeroU32> {
-    result2pyresult(NonZeroU32::new(v).ok_or_else(|| format!("Value of '{}' is zero", v)))
 }
 
 pub(crate) fn pixel_type_from_u8(pixel_type: u8) -> PixelType {

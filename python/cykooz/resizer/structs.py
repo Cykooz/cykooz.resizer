@@ -4,9 +4,9 @@
 """
 import dataclasses
 from enum import Enum, unique
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
-from .rust_lib import ImageView
+from .rust_lib import Image, RustResizeOptions
 
 
 __all__ = (
@@ -16,6 +16,7 @@ __all__ = (
     'PixelType',
     'ResizeAlg',
     'CropBox',
+    'ResizeOptions',
     'ImageData',
 )
 
@@ -33,6 +34,7 @@ class FilterType(Enum):
     bilinear = 2
     catmull_rom = 3
     mitchell = 4
+    gaussian = 6
     lanczos3 = 5
 
 
@@ -41,6 +43,7 @@ class CpuExtensions(Enum):
     none = 1
     sse4_1 = 2
     avx2 = 3
+    neon = 4
 
 
 @unique
@@ -92,7 +95,7 @@ class ResizeAlg:
 
     @classmethod
     def super_sampling(
-        cls, filter_type: FilterType, multiplicity: int = 2
+            cls, filter_type: FilterType, multiplicity: int = 2
     ) -> 'ResizeAlg':
         if not isinstance(multiplicity, int) or 255 < multiplicity < 2:
             raise ValueError('"multiplicity" must be integer value in range [2, 255]')
@@ -118,9 +121,9 @@ class ResizeAlg:
         if not isinstance(other, self.__class__):
             return False
         return (
-            self._algorithm is other._algorithm
-            and self._filter_type is other._filter_type
-            and self._multiplicity == other._multiplicity
+                self._algorithm is other._algorithm
+                and self._filter_type is other._filter_type
+                and self._multiplicity == other._multiplicity
         )
 
     def __str__(self):
@@ -141,15 +144,15 @@ class CropBox:
     def __post_init__(self):
         if self.left < 0 or self.top < 0:
             raise ValueError('"left" and "right" must be greater or equal to zero')
-        if self.width <= 0 or self.height <= 0:
-            raise ValueError('"width" and "height" must be greater than zero')
+        if self.width < 0 or self.height < 0:
+            raise ValueError('"width" and "height" must be greater or equal to zero')
 
     @classmethod
     def get_crop_box_to_fit_dst_size(
-        cls,
-        src_size: Tuple[int, int],
-        dst_size: Tuple[int, int],
-        centering=(0.5, 0.5),
+            cls,
+            src_size: Tuple[int, int],
+            dst_size: Tuple[int, int],
+            centering=(0.5, 0.5),
     ) -> 'CropBox':
         """
         Returns a crop box to resize the source image into the
@@ -216,18 +219,116 @@ class CropBox:
         )
 
 
+class ResizeOptions:
+
+    def __init__(
+            self,
+            resize_alg: Optional[ResizeAlg] = None,
+            use_alpha: Optional[bool] = None,
+            crop_box: Optional[CropBox] = None,
+            fit_into_destination: Union[bool, Tuple[float, float]] = False,
+    ):
+        self.rust_options = RustResizeOptions()
+        if resize_alg:
+            self.resize_alg = resize_alg
+        if crop_box:
+            self.crop_box = crop_box
+        if fit_into_destination:
+            centering = fit_into_destination if isinstance(fit_into_destination, tuple) else None
+            self.fit_into_destination(centering)
+        if use_alpha is not None:
+            self.use_alpha = use_alpha
+
+    def copy(self) -> 'ResizeOptions':
+        copy = self.__class__()
+        copy.rust_options = self.rust_options.copy()
+        return copy
+
+    @property
+    def resize_alg(self) -> ResizeAlg:
+        algorithm_v, filter_type_v, multiplicity = self.rust_options.get_resize_alg()
+        try:
+            algorithm = Algorithm(algorithm_v)
+            if algorithm is Algorithm.nearest:
+                return ResizeAlg.nearest()
+            elif algorithm is Algorithm.convolution:
+                filter_type = FilterType(filter_type_v)
+                return ResizeAlg.convolution(filter_type)
+            elif algorithm is Algorithm.super_sampling:
+                filter_type = FilterType(filter_type_v)
+                return ResizeAlg.super_sampling(filter_type, multiplicity)
+        except ValueError:
+            pass
+        raise RuntimeError(
+            f'Unknown resize algorithm parameters '
+            f'("{algorithm_v}", "{filter_type_v}", {multiplicity})'
+        )
+
+    @resize_alg.setter
+    def resize_alg(self, alg: ResizeAlg):
+        self.rust_options = self._change_resize_alg(alg)
+
+    def _change_resize_alg(self, alg: ResizeAlg) -> RustResizeOptions:
+        filter_type = alg.filter_type
+        filter_type = filter_type.value if filter_type else 0
+        multiplicity = alg.multiplicity
+        multiplicity = multiplicity if multiplicity else 2
+        return self.rust_options.set_resize_alg(
+            alg.algorithm.value,
+            filter_type,
+            multiplicity,
+        )
+
+    @property
+    def crop_box(self) -> Optional[CropBox]:
+        """Get crop box for source image."""
+        box = self.rust_options.get_crop_box()
+        if box:
+            return CropBox(*box)
+
+    @crop_box.setter
+    def crop_box(self, value: CropBox):
+        """Set crop box for source image."""
+        self.rust_options = self.rust_options.set_crop_box(
+            value.left,
+            value.top,
+            value.width,
+            value.height,
+        )
+
+    def fit_into_destination(
+            self,
+            centering: Optional[Tuple[float, float]] = None,
+    ):
+        """Fit source image into the aspect ratio of destination
+        image without distortions."""
+        self.rust_options = self.rust_options.set_fit_into_destination(centering)
+
+    def get_fit_into_destination_centering(self) -> Optional[Tuple[float, float]]:
+        return self.rust_options.get_fit_into_destination_centering()
+
+    @property
+    def use_alpha(self) -> bool:
+        return self.rust_options.get_use_alpha()
+
+    @use_alpha.setter
+    def use_alpha(self, value: bool):
+        """Enable or disable consideration of the alpha channel when resizing."""
+        self.rust_options = self.rust_options.set_use_alpha(value)
+
+
 class ImageData:
     __slots__ = ('rust_image',)
 
     def __init__(
-        self,
-        width: int,
-        height: int,
-        pixel_type: PixelType,
-        pixels: Optional[bytes] = None,
+            self,
+            width: int,
+            height: int,
+            pixel_type: PixelType,
+            pixels: Optional[bytes] = None,
     ):
-        if width <= 0 or height <= 0:
-            raise ValueError('"width" and "height" must be greater than zero')
+        if width < 0 or height < 0:
+            raise ValueError('"width" and "height" must be greater ot equal to zero')
         if pixels:
             pixel_size = PIXEL_SIZE[pixel_type]
             min_size = width * height * pixel_size
@@ -235,7 +336,7 @@ class ImageData:
                 raise ValueError(
                     f'Size of "pixels" must be greater or equal to {min_size} bytes'
                 )
-        self.rust_image = ImageView(width, height, pixel_type.value, pixels)
+        self.rust_image = Image(width, height, pixel_type.value, pixels)
 
     @property
     def width(self) -> int:

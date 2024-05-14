@@ -1,8 +1,7 @@
-use std::num::NonZeroU32;
 use std::slice;
 
-use fast_image_resize::pixels::{PixelExt, PixelType};
-use fast_image_resize::{CropBox, DynamicImageView, DynamicImageViewMut, ImageView, ImageViewMut};
+use fast_image_resize::pixels::PixelType;
+use fast_image_resize::{ImageView, ImageViewMut, IntoImageView, IntoImageViewMut, PixelTrait};
 use pyo3::ffi::PyCapsule_GetPointer;
 use pyo3::prelude::*;
 use pyo3::{PyTraverseError, PyVisit};
@@ -25,17 +24,16 @@ pub(crate) enum RgbMode {
 }
 
 #[pyclass]
-pub struct PilImageView {
+pub struct PilImageWrapper {
     pil_image: Option<PyObject>,
     pixel_type: PixelType,
-    width: NonZeroU32,
-    height: NonZeroU32,
+    width: u32,
+    height: u32,
     rows_ptr: Option<u64>,
-    crop_box: Option<CropBox>,
 }
 
 #[pymethods]
-impl PilImageView {
+impl PilImageWrapper {
     #[new]
     fn new(py: Python, pil_image: PyObject) -> PyResult<Self> {
         let py_mode = pil_image.getattr(py, "mode")?;
@@ -52,11 +50,6 @@ impl PilImageView {
 
         let py_size = pil_image.getattr(py, "size")?;
         let (width, height): (u32, u32) = py_size.extract(py)?;
-        let width =
-            result2pyresult(NonZeroU32::new(width).ok_or("Image width must be greater than zero"))?;
-        let height = result2pyresult(
-            NonZeroU32::new(height).ok_or("Image height must be greater than zero"),
-        )?;
 
         pil_image.call_method0(py, "load")?;
         let im = pil_image.getattr(py, "im")?;
@@ -80,18 +73,7 @@ impl PilImageView {
             width,
             height,
             rows_ptr: Some(rows_ptr),
-            crop_box: None,
         })
-    }
-
-    fn set_crop_box(&mut self, left: f64, top: f64, width: f64, height: f64) -> PyResult<()> {
-        self.crop_box = Some(CropBox {
-            left,
-            top,
-            width,
-            height,
-        });
-        Ok(())
     }
 
     #[getter]
@@ -113,70 +95,15 @@ impl PilImageView {
     }
 }
 
-impl PilImageView {
-    pub(crate) fn src_image_view(&self) -> PyResult<DynamicImageView> {
-        if let Some(rows_ptr) = self.rows_ptr {
-            let mut view = match self.pixel_type {
-                PixelType::U8x4 => DynamicImageView::U8x4(self.get_image_view(rows_ptr)?),
-                PixelType::I32 => DynamicImageView::I32(self.get_image_view(rows_ptr)?),
-                PixelType::F32 => DynamicImageView::F32(self.get_image_view(rows_ptr)?),
-                PixelType::U8 => DynamicImageView::U8(self.get_image_view(rows_ptr)?),
-                _ => return result2pyresult(Err("Not supported type of pixels")),
-            };
-            if let Some(crop_box) = self.crop_box {
-                result2pyresult(view.set_crop_box(crop_box))?;
-            }
-            Ok(view)
-        } else {
-            result2pyresult(Err("PIL image is dropped"))
-        }
+impl PilImageWrapper {
+    /// Get the typed version of the image.
+    fn typed_image<P: PixelTrait>(&self) -> Option<TypedPilImage<P>> {
+        TypedPilImage::new(self)
     }
 
-    fn get_image_view<P: PixelExt>(&self, rows_ptr: u64) -> PyResult<ImageView<P>> {
-        result2pyresult(ImageView::new(
-            self.width,
-            self.height,
-            self.get_vec_of_rows(rows_ptr),
-        ))
-    }
-
-    pub(crate) fn dst_image_view(&mut self) -> PyResult<DynamicImageViewMut> {
-        if let Some(rows_ptr) = self.rows_ptr {
-            let view = match self.pixel_type {
-                PixelType::U8x4 => DynamicImageViewMut::U8x4(self.get_image_view_mut(rows_ptr)?),
-                PixelType::I32 => DynamicImageViewMut::I32(self.get_image_view_mut(rows_ptr)?),
-                PixelType::F32 => DynamicImageViewMut::F32(self.get_image_view_mut(rows_ptr)?),
-                PixelType::U8 => DynamicImageViewMut::U8(self.get_image_view_mut(rows_ptr)?),
-                _ => return result2pyresult(Err("Not supported type of pixels")),
-            };
-            Ok(view)
-        } else {
-            result2pyresult(Err("PIL image is dropped"))
-        }
-    }
-
-    fn get_image_view_mut<P: PixelExt>(&self, rows_ptr: u64) -> PyResult<ImageViewMut<P>> {
-        result2pyresult(ImageViewMut::new(
-            self.width,
-            self.height,
-            self.get_vec_of_mut_rows(rows_ptr),
-        ))
-    }
-
-    fn get_vec_of_rows<P>(&self, rows_ptr: u64) -> Vec<&[P]> {
-        let rows_ptr = rows_ptr as *const *const P;
-        let width = self.width.get() as usize;
-        (0..self.height.get() as usize)
-            .map(|i| unsafe { slice::from_raw_parts(*rows_ptr.add(i), width) })
-            .collect()
-    }
-
-    fn get_vec_of_mut_rows<P>(&self, rows_ptr: u64) -> Vec<&mut [P]> {
-        let rows_ptr = rows_ptr as *const *mut P;
-        let width = self.width.get() as usize;
-        (0..self.height.get() as usize)
-            .map(|i| unsafe { slice::from_raw_parts_mut(*rows_ptr.add(i), width) })
-            .collect()
+    /// Get the typed mutable version of the image.
+    fn typed_image_mut<P: PixelTrait>(&mut self) -> Option<TypedPilImageMut<P>> {
+        TypedPilImageMut::new(self)
     }
 
     pub(crate) fn is_rgb_mode(&self, py: Python) -> PyResult<bool> {
@@ -212,5 +139,116 @@ impl PilImageView {
             }
         }
         Ok(())
+    }
+}
+
+impl IntoImageView for PilImageWrapper {
+    fn pixel_type(&self) -> Option<PixelType> {
+        Some(self.pixel_type)
+    }
+
+    fn width(&self) -> u32 {
+        self.width
+    }
+
+    fn height(&self) -> u32 {
+        self.height
+    }
+
+    fn image_view<P: PixelTrait>(&self) -> Option<impl ImageView<Pixel = P>> {
+        self.typed_image()
+    }
+}
+
+impl IntoImageViewMut for PilImageWrapper {
+    fn image_view_mut<P: PixelTrait>(&mut self) -> Option<impl ImageViewMut<Pixel = P>> {
+        self.typed_image_mut()
+    }
+}
+
+/// Generic image container that provides [ImageView].
+pub(crate) struct TypedPilImage<'a, P: PixelTrait> {
+    pil_image: &'a PilImageWrapper,
+    rows_ptr: *const *const P,
+}
+
+impl<'a, P: PixelTrait> TypedPilImage<'a, P> {
+    pub fn new(pil_image: &'a PilImageWrapper) -> Option<Self> {
+        if let Some(rows_ptr) = pil_image.rows_ptr {
+            if P::pixel_type() == pil_image.pixel_type {
+                return Some(Self {
+                    pil_image,
+                    rows_ptr: rows_ptr as *const *const P,
+                });
+            }
+        }
+        None
+    }
+}
+
+unsafe impl<'a, P: PixelTrait> ImageView for TypedPilImage<'a, P> {
+    type Pixel = P;
+
+    fn width(&self) -> u32 {
+        self.pil_image.width
+    }
+
+    fn height(&self) -> u32 {
+        self.pil_image.height
+    }
+
+    fn iter_rows(&self, start_row: u32) -> impl Iterator<Item = &[Self::Pixel]> {
+        let start = start_row as usize;
+        let end = self.height() as usize;
+        let width = self.width() as usize;
+        (start..end).map(move |i| unsafe { slice::from_raw_parts(*self.rows_ptr.add(i), width) })
+    }
+}
+
+pub(crate) struct TypedPilImageMut<'a, P: Default + Copy> {
+    pil_image: &'a PilImageWrapper,
+    rows_ptr: *const *mut P,
+}
+
+impl<'a, P: PixelTrait> TypedPilImageMut<'a, P> {
+    pub fn new(pil_image: &'a PilImageWrapper) -> Option<Self> {
+        if let Some(rows_ptr) = pil_image.rows_ptr {
+            if P::pixel_type() == pil_image.pixel_type {
+                return Some(Self {
+                    pil_image,
+                    rows_ptr: rows_ptr as *const *mut P,
+                });
+            }
+        }
+        None
+    }
+}
+
+unsafe impl<'a, P: PixelTrait> ImageView for TypedPilImageMut<'a, P> {
+    type Pixel = P;
+
+    fn width(&self) -> u32 {
+        self.pil_image.width
+    }
+
+    fn height(&self) -> u32 {
+        self.pil_image.height
+    }
+
+    fn iter_rows(&self, start_row: u32) -> impl Iterator<Item = &[Self::Pixel]> {
+        let start = start_row as usize;
+        let end = self.height() as usize;
+        let width = self.width() as usize;
+        (start..end).map(move |i| unsafe { slice::from_raw_parts(*self.rows_ptr.add(i), width) })
+    }
+}
+
+unsafe impl<'a, P: PixelTrait> ImageViewMut for TypedPilImageMut<'a, P> {
+    fn iter_rows_mut(&mut self, start_row: u32) -> impl Iterator<Item = &mut [Self::Pixel]> {
+        let start = start_row as usize;
+        let end = self.height() as usize;
+        let width = self.width() as usize;
+        (start..end)
+            .map(move |i| unsafe { slice::from_raw_parts_mut(*self.rows_ptr.add(i), width) })
     }
 }
