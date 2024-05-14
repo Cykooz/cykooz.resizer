@@ -25,10 +25,14 @@ def test_resize_options():
     assert options.resize_alg == alg
 
 
-def test_resizer_settings():
+def test_resizer_cpu_extensions():
     resizer = Resizer()
-    resizer.cpu_extensions = CpuExtensions.avx2
-    assert resizer.cpu_extensions is CpuExtensions.avx2
+    if resizer.cpu_extensions is CpuExtensions.avx2:
+        resizer.cpu_extensions = CpuExtensions.sse4_1
+        assert resizer.cpu_extensions is CpuExtensions.sse4_1
+    elif resizer.cpu_extensions is CpuExtensions.neon:
+        resizer.cpu_extensions = CpuExtensions.none
+        assert resizer.cpu_extensions is CpuExtensions.none
 
 
 @pytest.mark.parametrize(
