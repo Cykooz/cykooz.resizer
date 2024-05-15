@@ -94,7 +94,7 @@ def _resize_raw(
     resizer = Resizer()
     resizer.cpu_extensions = cpu_extensions
     if resizer.cpu_extensions != cpu_extensions:
-        raise pytest.skip(f'{cpu_extensions} instruction not supported by CPU')
+        raise pytest.skip(f'{cpu_extensions.name} instruction not supported by CPU')
 
     resizer.resize(
         src_image,
@@ -124,7 +124,7 @@ def _resize_pil(
     resizer = Resizer()
     resizer.cpu_extensions = cpu_extensions
     if resizer.cpu_extensions != cpu_extensions:
-        raise pytest.skip(f'{cpu_extensions} instruction not supported by CPU')
+        raise pytest.skip(f'{cpu_extensions.name} instruction not supported by CPU')
 
     resizer.resize_pil(
         src_image,

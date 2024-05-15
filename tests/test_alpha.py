@@ -47,7 +47,7 @@ def test_multiply_alpha_pil(
     mul_div = AlphaMulDiv()
     mul_div.cpu_extensions = cpu_extensions
     if mul_div.cpu_extensions != cpu_extensions:
-        raise pytest.skip(f'{cpu_extensions} instruction not supported by CPU')
+        raise pytest.skip(f'{cpu_extensions.name} instruction not supported by CPU')
 
     image = source_image.copy()
     assert get_image_checksum(image.tobytes('raw')) == Checksum(
@@ -106,7 +106,7 @@ def test_divide_alpha_pil(
     mul_div = AlphaMulDiv()
     mul_div.cpu_extensions = cpu_extensions
     if mul_div.cpu_extensions != cpu_extensions:
-        raise pytest.skip(f'{cpu_extensions} instruction not supported by CPU')
+        raise pytest.skip(f'{cpu_extensions.name} instruction not supported by CPU')
 
     image = source_image.copy()
     if image.mode != 'RGBa':

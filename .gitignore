@@ -3,6 +3,7 @@
 !/.gitignore
 !/.github
 !/.ruff.toml
+__pycache__
 /dist
 /tests/data/result
 /python/cykooz/resizer/*.so
