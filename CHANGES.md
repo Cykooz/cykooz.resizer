@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [3.0.0] - Unreleased
+## [3.0.0] - 2024-05-15
 
 - Updated version of ``fast_image_resize`` to 4.0.0.
 - Added support of `Neon` CPU-instructions to speedup image resizing
