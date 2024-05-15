@@ -32,14 +32,6 @@ jobs:
         run: |
           pytest --benchmark-skip -vv
 
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          maturin-version: latest
-          target: x86_64
-          manylinux: auto
-          args: --release --strip --out dist -i ${{ matrix.python-version }}
-
       - name: Build sdist
         if: ${{ matrix.python-version == '3.12' }}
         uses: PyO3/maturin-action@v1
@@ -49,7 +41,15 @@ jobs:
           before-script-linux: rm -rf ".github" "tests" ".gitignore"
           args: --out dist
 
-      - name: Install built wheel
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: latest
+          target: x86_64
+          manylinux: auto
+          args: --release --strip --out dist -i ${{ matrix.python-version }}
+
+      - name: Install wheel
         run: |
           cd dist
           python -m pip install cykooz.resizer --no-index --find-links ./ --force-reinstall
