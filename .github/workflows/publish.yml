@@ -32,17 +32,24 @@ jobs:
         run: |
           pytest --benchmark-skip -vv
 
-      - name: Build sdist and wheels
-        if: ${{ matrix.python-version == '3.12' }}
+      - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           maturin-version: latest
           target: x86_64
           manylinux: auto
-          args: --sdist --release --strip --out dist -i 3.8 3.9 3.10 3.11 3.12
+          args: --release --strip --out dist -i ${{ matrix.python-version }}
+
+      - name: Build sdist
+        if: ${{ matrix.python-version == '3.12' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: latest
+          command: sdist
+          before-script-linux: rm -rf ".github" "tests" ".gitignore"
+          args: --out dist
 
       - name: Install built wheel
-        if: ${{ matrix.python-version == '3.12' }}
         run: |
           cd dist
           python -m pip install cykooz.resizer --no-index --find-links ./ --force-reinstall
@@ -50,10 +57,9 @@ jobs:
           cd ..
 
       - name: Upload sdist and wheels
-        if: ${{ matrix.python-version == '3.12' }}
         uses: actions/upload-artifact@v4
         with:
-          name: wheels_lin
+          name: wheels_lin-${{ matrix.python-version }}
           path: dist
 
 
