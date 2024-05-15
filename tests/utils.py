@@ -60,7 +60,7 @@ class BenchResults:
 
 
 def save_result(image: Image.Image, rel_path: Path, file_name):
-    if not os.environ.get('DONT_SAVE_RESULT', ''):
+    if os.environ.get('SAVE_RESULT', ''):
         data_dir = Path(__file__).parent / 'data'
         result_dir = data_dir / 'result' / rel_path
         result_dir.mkdir(parents=True, exist_ok=True)

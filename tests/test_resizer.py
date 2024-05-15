@@ -41,11 +41,13 @@ def test_resizer_cpu_extensions():
         (CpuExtensions.none, Checksum(3037693, 3015698, 2922607, 6122718)),
         (CpuExtensions.sse4_1, Checksum(3037693, 3015698, 2922607, 6122718)),
         (CpuExtensions.avx2, Checksum(3037693, 3015698, 2922607, 6122718)),
+        (CpuExtensions.neon, Checksum(3037693, 3015698, 2922607, 6122718)),
     ],
     ids=[
         'wo forced SIMD',
         'sse4.1',
         'avx2',
+        'neon',
     ],
 )
 @pytest.mark.parametrize(
@@ -90,12 +92,9 @@ def _resize_raw(
     assert get_image_checksum(dst_image.get_buffer()) == Checksum(0, 0, 0, 0)
 
     resizer = Resizer()
-    if (
-            cpu_extensions == CpuExtensions.avx2
-            and resizer.cpu_extensions != CpuExtensions.avx2
-    ):
-        raise pytest.skip('AVX2 instruction not supported by CPU')
     resizer.cpu_extensions = cpu_extensions
+    if resizer.cpu_extensions != cpu_extensions:
+        raise pytest.skip(f'{cpu_extensions} instruction not supported by CPU')
 
     resizer.resize(
         src_image,
@@ -123,12 +122,9 @@ def _resize_pil(
     assert get_image_checksum(dst_image.tobytes('raw')) == Checksum(0, 0, 0, 0)
 
     resizer = Resizer()
-    if (
-            cpu_extensions == CpuExtensions.avx2
-            and resizer.cpu_extensions != CpuExtensions.avx2
-    ):
-        raise pytest.skip('AVX2 instruction not supported by CPU')
     resizer.cpu_extensions = cpu_extensions
+    if resizer.cpu_extensions != cpu_extensions:
+        raise pytest.skip(f'{cpu_extensions} instruction not supported by CPU')
 
     resizer.resize_pil(
         src_image,

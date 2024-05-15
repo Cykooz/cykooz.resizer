@@ -21,11 +21,13 @@ from utils import Checksum, get_image_checksum, save_result
                 Checksum(1091845751, 1090022383, 1061212976, 2282335752),
         ),
         (CpuExtensions.avx2, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
+        (CpuExtensions.neon, Checksum(1091845751, 1090022383, 1061212976, 2282335752)),
     ],
     ids=[
         'wo forced SIMD',
         'sse4.1',
         'avx2',
+        'neon',
     ],
 )
 @pytest.mark.parametrize(
@@ -43,12 +45,9 @@ def test_multiply_alpha_pil(
         checksum: int,
 ):
     mul_div = AlphaMulDiv()
-    if (
-            cpu_extensions == CpuExtensions.avx2
-            and mul_div.cpu_extensions != CpuExtensions.avx2
-    ):
-        raise pytest.skip('AVX2 instruction not supported by CPU')
     mul_div.cpu_extensions = cpu_extensions
+    if mul_div.cpu_extensions != cpu_extensions:
+        raise pytest.skip(f'{cpu_extensions} instruction not supported by CPU')
 
     image = source_image.copy()
     assert get_image_checksum(image.tobytes('raw')) == Checksum(
@@ -81,11 +80,13 @@ def test_multiply_alpha_pil(
                 Checksum(1093712480, 1091645363, 1062623655, 2282335752),
         ),
         (CpuExtensions.avx2, Checksum(1093712480, 1091645363, 1062623655, 2282335752)),
+        (CpuExtensions.neon, Checksum(1093712480, 1091645363, 1062623655, 2282335752)),
     ],
     ids=[
         'wo forced SIMD',
         'sse4.1',
         'avx2',
+        'neon',
     ],
 )
 @pytest.mark.parametrize(
@@ -103,12 +104,9 @@ def test_divide_alpha_pil(
         checksum: int,
 ):
     mul_div = AlphaMulDiv()
-    if (
-            cpu_extensions == CpuExtensions.avx2
-            and mul_div.cpu_extensions != CpuExtensions.avx2
-    ):
-        raise pytest.skip('AVX2 instruction not supported by CPU')
     mul_div.cpu_extensions = cpu_extensions
+    if mul_div.cpu_extensions != cpu_extensions:
+        raise pytest.skip(f'{cpu_extensions} instruction not supported by CPU')
 
     image = source_image.copy()
     if image.mode != 'RGBa':
