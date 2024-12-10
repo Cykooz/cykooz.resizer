@@ -2,12 +2,15 @@
 :Authors: cykooz
 :Date: 02.08.2021
 """
+from typing import Optional
+
+
 try:
     from PIL import Image as PilImage
 except ImportError:
     PilImage = None
 
-from .rust_lib import PilImageWrapper, RustAlphaMulDiv
+from .rust_lib import PilImageWrapper, RustAlphaMulDiv, ResizerThreadPool
 from .structs import CpuExtensions, ImageData
 
 
@@ -24,25 +27,55 @@ class AlphaMulDiv:
     def cpu_extensions(self, extensions: CpuExtensions):
         self._rust_alpha_mul_div.set_cpu_extensions(extensions.value)
 
-    def multiply_alpha(self, src_image: ImageData, dst_image: ImageData):
+    def multiply_alpha(
+            self,
+            src_image: ImageData,
+            dst_image: ImageData,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         self._rust_alpha_mul_div.multiply_alpha(
             src_image.rust_image,
             dst_image.rust_image,
+            thread_pool,
         )
 
-    def multiply_alpha_inplace(self, image: ImageData):
-        self._rust_alpha_mul_div.multiply_alpha_inplace(image.rust_image)
+    def multiply_alpha_inplace(
+            self,
+            image: ImageData,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
+        self._rust_alpha_mul_div.multiply_alpha_inplace(
+            image.rust_image,
+            thread_pool,
+        )
 
-    def divide_alpha(self, src_image: ImageData, dst_image: ImageData):
+    def divide_alpha(
+            self,
+            src_image: ImageData,
+            dst_image: ImageData,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         self._rust_alpha_mul_div.divide_alpha(
             src_image.rust_image,
             dst_image.rust_image,
+            thread_pool,
         )
 
-    def divide_alpha_inplace(self, image: ImageData):
-        self._rust_alpha_mul_div.divide_alpha_inplace(image.rust_image)
+    def divide_alpha_inplace(
+            self,
+            image: ImageData,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
+        self._rust_alpha_mul_div.divide_alpha_inplace(
+            image.rust_image,
+            thread_pool,
+        )
 
-    def multiply_alpha_pil(self, image: 'PilImage.Image') -> 'PilImage.Image':
+    def multiply_alpha_pil(
+            self,
+            image: 'PilImage.Image',
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ) -> 'PilImage.Image':
         if image.mode == 'RGBa':
             return image.copy()
         elif image.mode != 'RGBA':
@@ -51,10 +84,18 @@ class AlphaMulDiv:
         src_view = PilImageWrapper(image)
         dst_img = PilImage.new('RGBa', image.size)
         dst_view = PilImageWrapper(dst_img)
-        self._rust_alpha_mul_div.multiply_alpha_pil(src_view, dst_view)
+        self._rust_alpha_mul_div.multiply_alpha_pil(
+            src_view,
+            dst_view,
+            thread_pool,
+        )
         return dst_img
 
-    def multiply_alpha_pil_inplace(self, image: 'PilImage.Image'):
+    def multiply_alpha_pil_inplace(
+            self,
+            image: 'PilImage.Image',
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         if image.mode == 'RGBa':
             return
         elif image.mode != 'RGBA':
@@ -62,10 +103,17 @@ class AlphaMulDiv:
         if image.readonly:
             image._copy()
         image_view = PilImageWrapper(image)
-        self._rust_alpha_mul_div.multiply_alpha_pil_inplace(image_view)
+        self._rust_alpha_mul_div.multiply_alpha_pil_inplace(
+            image_view,
+            thread_pool,
+        )
         set_image_mode(image, 'RGBa')
 
-    def divide_alpha_pil(self, image: 'PilImage.Image') -> 'PilImage.Image':
+    def divide_alpha_pil(
+            self,
+            image: 'PilImage.Image',
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ) -> 'PilImage.Image':
         if image.mode == 'RGBA':
             return image.copy()
         elif image.mode != 'RGBa':
@@ -73,10 +121,18 @@ class AlphaMulDiv:
         src_view = PilImageWrapper(image)
         dst_img = PilImage.new('RGBA', image.size)
         dst_view = PilImageWrapper(dst_img)
-        self._rust_alpha_mul_div.divide_alpha_pil(src_view, dst_view)
+        self._rust_alpha_mul_div.divide_alpha_pil(
+            src_view,
+            dst_view,
+            thread_pool,
+        )
         return dst_img
 
-    def divide_alpha_pil_inplace(self, image: 'PilImage.Image'):
+    def divide_alpha_pil_inplace(
+            self,
+            image: 'PilImage.Image',
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         if image.mode == 'RGBA':
             return
         elif image.mode != 'RGBa':
@@ -84,7 +140,10 @@ class AlphaMulDiv:
         if image.readonly:
             image._copy()
         image_view = PilImageWrapper(image)
-        self._rust_alpha_mul_div.divide_alpha_pil_inplace(image_view)
+        self._rust_alpha_mul_div.divide_alpha_pil_inplace(
+            image_view,
+            thread_pool,
+        )
         set_image_mode(image, 'RGBA')
 
 

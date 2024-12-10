@@ -6,7 +6,7 @@ import dataclasses
 from enum import Enum, unique
 from typing import Optional, Tuple, Union
 
-from .rust_lib import Image, RustResizeOptions
+from .rust_lib import Image, RustResizeOptions, ResizerThreadPool
 
 
 __all__ = (
@@ -16,6 +16,7 @@ __all__ = (
     'PixelType',
     'ResizeAlg',
     'CropBox',
+    'ResizerThreadPool',
     'ResizeOptions',
     'ImageData',
 )
@@ -227,6 +228,7 @@ class ResizeOptions:
             use_alpha: Optional[bool] = None,
             crop_box: Optional[CropBox] = None,
             fit_into_destination: Union[bool, Tuple[float, float]] = False,
+            thread_pool: Optional[ResizerThreadPool] = None,
     ):
         self.rust_options = RustResizeOptions()
         if resize_alg:
@@ -238,6 +240,8 @@ class ResizeOptions:
             self.fit_into_destination(centering)
         if use_alpha is not None:
             self.use_alpha = use_alpha
+        if thread_pool is not None:
+            self.thread_pool = thread_pool
 
     def copy(self) -> 'ResizeOptions':
         copy = self.__class__()
@@ -315,6 +319,14 @@ class ResizeOptions:
     def use_alpha(self, value: bool):
         """Enable or disable consideration of the alpha channel when resizing."""
         self.rust_options = self.rust_options.set_use_alpha(value)
+
+    @property
+    def thread_pool(self) -> Optional[ResizerThreadPool]:
+        return self.rust_options.get_thread_pool()
+
+    @thread_pool.setter
+    def thread_pool(self, thread_pool: Optional[ResizerThreadPool]):
+        self.rust_options = self.rust_options.set_thread_pool(thread_pool)
 
 
 class ImageData:

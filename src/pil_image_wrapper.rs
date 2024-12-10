@@ -1,21 +1,36 @@
+use std::ffi::{c_int, c_void};
+use std::marker::PhantomData;
 use std::slice;
 
+use crate::utils::result2pyresult;
 use fast_image_resize::pixels::PixelType;
 use fast_image_resize::{ImageView, ImageViewMut, IntoImageView, IntoImageViewMut, PixelTrait};
-use pyo3::ffi::PyCapsule_GetPointer;
 use pyo3::prelude::*;
+use pyo3::types::PyCapsule;
 use pyo3::{PyTraverseError, PyVisit};
-
-use crate::utils::result2pyresult;
 
 // https://github.com/python-pillow/Pillow/blob/master/src/libImaging/Imaging.h#L80
 #[repr(C)]
-#[derive(Debug)]
 struct ImagingMemoryInstance {
-    mode: [u8; 7], /* Band names ("1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "BGR;xy") */
+    /// Band names ("1", "L", "P", "RGB", "RGBA", "CMYK", "YCbCr", "BGR;xy")
+    mode: [u8; 7],
+    /// Data type (IMAGING_TYPE_*)
+    r#type: c_int,
+    /// Depth (ignored in this version)
+    depth: c_int,
+    /// Number of bands (1, 2, 3, or 4)
+    bands: c_int,
+    /// Image dimension.
+    xsize: c_int,
+    /// Image dimension.
+    ysize: c_int,
+    /// Colour palette (for "P" images only)
+    palette: *mut c_void,
+    /// Set for 8-bit images (pixelsize=1)
+    image8: *mut *mut u8,
+    /// Set for 32-bit images (pixelsize=4)
+    image32: *mut *mut i32,
 }
-
-static IMAGING_MAGIC: &[u8] = b"PIL Imaging\0";
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum RgbMode {
@@ -52,20 +67,12 @@ impl PilImageWrapper {
         let (width, height): (u32, u32) = py_size.extract(py)?;
 
         pil_image.call_method0(py, "load")?;
-        let im = pil_image.getattr(py, "im")?;
-        let py_unsafe_ptrs = im.getattr(py, "unsafe_ptrs")?;
-        let unsafe_ptrs: Vec<(String, u64)> = py_unsafe_ptrs.extract(py)?;
-        let ptr_name = match pixel_type {
-            PixelType::U8 => "image8",
-            _ => "image32",
+
+        let pil_struct = pil_struct(&pil_image, py)?;
+        let rows_ptr = match pixel_type {
+            PixelType::U8 => pil_struct.image8 as u64,
+            _ => pil_struct.image32 as u64,
         };
-        let rows_ptr = result2pyresult(
-            unsafe_ptrs
-                .into_iter()
-                .find(|(name, _)| name == ptr_name)
-                .map(|(_, ptr)| ptr)
-                .ok_or("Can't get pointer to image pixels"),
-        )?;
 
         Ok(Self {
             pil_image: Some(pil_image),
@@ -77,8 +84,8 @@ impl PilImageWrapper {
     }
 
     #[getter]
-    fn pil_image(&self) -> PyResult<Option<PyObject>> {
-        Ok(self.pil_image.clone())
+    fn pil_image(&self, py: Python) -> Option<PyObject> {
+        self.pil_image.as_ref().map(|img| img.clone_ref(py))
     }
 
     fn __traverse__(&self, visit: PyVisit) -> Result<(), PyTraverseError> {
@@ -95,6 +102,37 @@ impl PilImageWrapper {
     }
 }
 
+/// Returns reference to `ImagingMemoryInstance` struct from Pillow C-code.
+fn pil_struct<'i>(pil_image: &'i PyObject, py: Python) -> PyResult<&'i ImagingMemoryInstance> {
+    let im = pil_image.call_method0(py, "getim")?;
+    if let Ok(capsule) = im.downcast_bound::<PyCapsule>(py) {
+        let image_ptr = capsule.pointer() as *const ImagingMemoryInstance;
+        if !image_ptr.is_null() {
+            return Ok(unsafe { &*image_ptr });
+        }
+    }
+    result2pyresult(Err(
+        "Unable to get ImagingMemoryInstance struc from PIL image",
+    ))
+}
+
+/// Returns mutable reference to `ImagingMemoryInstance` struct from Pillow C-code.
+fn pil_struct_mut<'i>(
+    pil_image: &'i mut PyObject,
+    py: Python,
+) -> PyResult<&'i mut ImagingMemoryInstance> {
+    let im = pil_image.call_method0(py, "getim")?;
+    if let Ok(capsule) = im.downcast_bound::<PyCapsule>(py) {
+        let image_ptr = capsule.pointer() as *mut ImagingMemoryInstance;
+        if !image_ptr.is_null() {
+            return Ok(unsafe { &mut *image_ptr });
+        }
+    }
+    result2pyresult(Err(
+        "Unable to get ImagingMemoryInstance struc from PIL image",
+    ))
+}
+
 impl PilImageWrapper {
     /// Get the typed version of the image.
     fn typed_image<P: PixelTrait>(&self) -> Option<TypedPilImage<P>> {
@@ -108,34 +146,18 @@ impl PilImageWrapper {
 
     pub(crate) fn is_rgb_mode(&self, py: Python) -> PyResult<bool> {
         if let Some(ref pil_image) = self.pil_image {
-            let im = pil_image.getattr(py, "im")?;
-            let pil_c_image_ptr = im.getattr(py, "ptr")?;
-            let image_ptr = unsafe {
-                PyCapsule_GetPointer(pil_c_image_ptr.as_ptr(), IMAGING_MAGIC.as_ptr() as _)
-            };
-            if !image_ptr.is_null() {
-                let image_ptr = image_ptr as *const ImagingMemoryInstance;
-                let mode = unsafe { &(*image_ptr).mode };
-                return Ok(mode.starts_with(b"RGB"));
-            }
+            let pil_struct = pil_struct(pil_image, py)?;
+            return Ok(pil_struct.mode.starts_with(b"RGB"));
         }
         result2pyresult(Err("Unknown mode of PIL image"))
     }
 
     pub(crate) fn set_rgb_mode(&mut self, py: Python, value: RgbMode) -> PyResult<()> {
-        if let Some(ref pil_image) = self.pil_image {
-            let im = pil_image.getattr(py, "im")?;
-            let pil_c_image_ptr = im.getattr(py, "ptr")?;
-            let image_ptr = unsafe {
-                PyCapsule_GetPointer(pil_c_image_ptr.as_ptr(), IMAGING_MAGIC.as_ptr() as _)
-            };
-            if !image_ptr.is_null() {
-                let image_ptr = image_ptr as *mut ImagingMemoryInstance;
-                let mode = unsafe { &mut (*image_ptr).mode };
-                match value {
-                    RgbMode::RgbA => mode.copy_from_slice(b"RGBA\0\0\0"),
-                    RgbMode::Rgba => mode.copy_from_slice(b"RGBa\0\0\0"),
-                };
+        if let Some(pil_image) = &mut self.pil_image {
+            let pil_struct = pil_struct_mut(pil_image, py)?;
+            match value {
+                RgbMode::RgbA => pil_struct.mode.copy_from_slice(b"RGBA\0\0\0"),
+                RgbMode::Rgba => pil_struct.mode.copy_from_slice(b"RGBa\0\0\0"),
             }
         }
         Ok(())
@@ -169,7 +191,8 @@ impl IntoImageViewMut for PilImageWrapper {
 /// Generic image container that provides [ImageView].
 pub(crate) struct TypedPilImage<'a, P: PixelTrait> {
     pil_image: &'a PilImageWrapper,
-    rows_ptr: *const *const P,
+    rows_ptr: u64,
+    phantom: PhantomData<P>,
 }
 
 impl<'a, P: PixelTrait> TypedPilImage<'a, P> {
@@ -178,7 +201,8 @@ impl<'a, P: PixelTrait> TypedPilImage<'a, P> {
             if P::pixel_type() == pil_image.pixel_type {
                 return Some(Self {
                     pil_image,
-                    rows_ptr: rows_ptr as *const *const P,
+                    rows_ptr,
+                    phantom: PhantomData,
                 });
             }
         }
@@ -201,13 +225,15 @@ unsafe impl<'a, P: PixelTrait> ImageView for TypedPilImage<'a, P> {
         let start = start_row as usize;
         let end = self.height() as usize;
         let width = self.width() as usize;
-        (start..end).map(move |i| unsafe { slice::from_raw_parts(*self.rows_ptr.add(i), width) })
+        let ptr = self.rows_ptr as *const *const P;
+        (start..end).map(move |i| unsafe { slice::from_raw_parts(*ptr.add(i), width) })
     }
 }
 
 pub(crate) struct TypedPilImageMut<'a, P: Default + Copy> {
     pil_image: &'a PilImageWrapper,
-    rows_ptr: *const *mut P,
+    rows_ptr: u64,
+    phantom: PhantomData<P>,
 }
 
 impl<'a, P: PixelTrait> TypedPilImageMut<'a, P> {
@@ -216,7 +242,8 @@ impl<'a, P: PixelTrait> TypedPilImageMut<'a, P> {
             if P::pixel_type() == pil_image.pixel_type {
                 return Some(Self {
                     pil_image,
-                    rows_ptr: rows_ptr as *const *mut P,
+                    rows_ptr,
+                    phantom: PhantomData,
                 });
             }
         }
@@ -239,7 +266,8 @@ unsafe impl<'a, P: PixelTrait> ImageView for TypedPilImageMut<'a, P> {
         let start = start_row as usize;
         let end = self.height() as usize;
         let width = self.width() as usize;
-        (start..end).map(move |i| unsafe { slice::from_raw_parts(*self.rows_ptr.add(i), width) })
+        let ptr = self.rows_ptr as *const *const P;
+        (start..end).map(move |i| unsafe { slice::from_raw_parts(*ptr.add(i), width) })
     }
 }
 
@@ -248,7 +276,7 @@ unsafe impl<'a, P: PixelTrait> ImageViewMut for TypedPilImageMut<'a, P> {
         let start = start_row as usize;
         let end = self.height() as usize;
         let width = self.width() as usize;
-        (start..end)
-            .map(move |i| unsafe { slice::from_raw_parts_mut(*self.rows_ptr.add(i), width) })
+        let ptr = self.rows_ptr as *const *mut P;
+        (start..end).map(move |i| unsafe { slice::from_raw_parts_mut(*ptr.add(i), width) })
     }
 }

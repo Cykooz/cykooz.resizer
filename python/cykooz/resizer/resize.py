@@ -54,6 +54,7 @@ class Resizer:
         """Resize source image into size of destination image and store result
         into buffer of destination image.
         """
+        src_image.load()
         src_mode = src_image.mode
         if src_mode not in ('RGB', 'RGBA', 'RGBa', 'CMYK', 'I', 'F', 'L'):
             raise ValueError(f'"{src_mode}" is unsupported mode of source PIL image')
@@ -73,7 +74,10 @@ class Resizer:
         if src_mode == 'RGBA' and dst_mode == 'RGBa':
             resize_alg = options.resize_alg
             if resize_alg.algorithm != Algorithm.nearest:
-                src_image = self._alpha_mul_div.multiply_alpha_pil(src_image)
+                src_image = self._alpha_mul_div.multiply_alpha_pil(
+                    src_image,
+                    options.thread_pool,
+                )
                 src_mode = 'RGBa'
 
         src_view = PilImageWrapper(src_image)
@@ -92,7 +96,10 @@ class Resizer:
         )
 
         if src_mode == 'RGBa' and dst_mode == 'RGBA':
-            self._alpha_mul_div.divide_alpha_pil_inplace(dst_image)
+            self._alpha_mul_div.divide_alpha_pil_inplace(
+                dst_image,
+                options.thread_pool,
+            )
         elif src_mode in ('RGBa', 'RGBA') and dst_mode == 'RGB':
             set_image_mode(dst_image, 'RGB')
         elif src_mode == 'RGB' and dst_mode in ('RGBa', 'RGBA'):

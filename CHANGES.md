@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [3.1.0] - Unreleased
+
+- Updated version of ``fast_image_resize`` to 5.1.0.
+- Added support for multi-thread image processing.
+  You can create an instance of `ResizerThreadPool` and use it for set
+  `ResizeOptions.thread_pool` field or put it as argument of `AlphaMulDiv` methods.
+
 ## [3.0.0] - 2024-05-15
 
 - Updated version of ``fast_image_resize`` to 4.0.0.

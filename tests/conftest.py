@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
+from cykooz.resizer import ResizerThreadPool
+
 
 @pytest.fixture(name='source_image', scope='session')
 def source_image_fixture() -> Image.Image:
@@ -16,3 +18,20 @@ def source_image_fixture() -> Image.Image:
     if image.mode != 'RGBA':
         image = image.convert('RGBA')
     return image
+
+
+@pytest.fixture(
+    name='thread_pool',
+    params=[
+        False,
+        True,
+    ],
+    ids=[
+        'single_thread',
+        'multi_thread',
+    ],
+    scope='session',
+)
+def thread_pool_fixture(request):
+    if request.param:
+        return ResizerThreadPool(num_threads=6)

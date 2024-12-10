@@ -10,6 +10,7 @@ pub struct Image(FirImage<'static>);
 #[pymethods]
 impl Image {
     #[new]
+    #[pyo3(signature = (width, height, pixel_type, buffer))]
     fn new(width: u32, height: u32, pixel_type: u8, buffer: Option<&[u8]>) -> PyResult<Self> {
         let pixel_type = pixel_type_from_u8(pixel_type);
         let pixel_size = pixel_type.size();
@@ -42,13 +43,12 @@ impl Image {
         self.0.height()
     }
 
-    fn buffer(&self, py: Python) -> PyResult<PyObject> {
+    fn buffer<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
         let image_buffer = self.0.buffer();
-        PyBytes::new_bound_with(py, image_buffer.len(), |dst_buffer| {
+        PyBytes::new_with(py, image_buffer.len(), |dst_buffer| {
             dst_buffer.copy_from_slice(image_buffer);
             Ok(())
         })
-        .map(|bytes| bytes.to_object(py))
     }
 }
 

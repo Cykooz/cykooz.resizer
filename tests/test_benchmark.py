@@ -16,7 +16,8 @@ from cykooz.resizer import (
     ImageData,
     PixelType,
     ResizeAlg,
-    ResizeOptions, Resizer,
+    ResizeOptions,
+    Resizer,
 )
 from cykooz.resizer.alpha import set_image_mode
 from utils import BenchResults
@@ -60,6 +61,11 @@ def resizer_fixture(cpu_extensions):
     resizer = Resizer()
     resizer.cpu_extensions = cpu_extensions
     return resizer
+
+
+@pytest.fixture(name='resize_options')
+def resize_options_fixture(resize_alg, thread_pool):
+    return ResizeOptions(resize_alg, thread_pool=thread_pool)
 
 
 @pytest.fixture(name='source_image')
@@ -134,12 +140,11 @@ def resize_raw(
 
 
 @pytest.mark.skip('Only manual running')
-def test_resize_raw(benchmark, resizer, resize_alg, source_image):
+def test_resize_raw(benchmark, resizer, resize_options, source_image):
     if source_image.mode != 'RGBA':
         source_image = source_image.convert('RGBA')
     width, height = source_image.size
     dst_image = ImageData(DST_SIZE[0], DST_SIZE[1], PixelType.U8x4)
-    resize_options = ResizeOptions(resize_alg)
 
     def setup():
         src_image = ImageData(width, height, PixelType.U8x4, source_image.tobytes())
@@ -160,31 +165,58 @@ def resize_pil(
     resizer.resize_pil(src_image, dst_image, resize_options)
 
 
-def test_resize_pil(benchmark, resizer: Resizer, resize_alg, source_image, results: BenchResults):
+def _add_bench_result(
+        results: BenchResults,
+        base_name: str,
+        resizer: Resizer,
+        options: ResizeOptions,
+        stats: Metadata,
+):
+    sort_values = []
+    row_name = base_name
+    row_name += f' - {resizer.cpu_extensions.name}'
+    if options.thread_pool:
+        row_name += ' - multi_thread'
+        sort_values.append(1)
+    else:
+        sort_values.append(0)
+    sort_values.append(base_name)
+    sort_values.append(resizer.cpu_extensions.value)
+
+    alg = options.resize_alg.algorithm
+    if alg == Algorithm.nearest:
+        alg = 'nearest'
+    else:
+        alg = options.resize_alg.filter_type.name
+
+    value = stats.stats.mean * 1000
+    sort_value = '-'.join((str(s) for s in sort_values))
+    results.add(row_name, alg, f'{value:.2f}', sort_value)
+
+
+def test_resize_pil(
+        benchmark,
+        resizer: Resizer,
+        resize_options,
+        source_image,
+        results: BenchResults,
+):
     if source_image.mode != 'RGBA':
         source_image = source_image.convert('RGBA')
     dst_image = Image.new('RGBA', DST_SIZE)
-    resize_options = ResizeOptions(resize_alg)
 
     def setup():
         set_image_mode(dst_image, 'RGBA')
         return (resizer, resize_options, source_image, dst_image), {}
 
     benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
-
-    row_name = 'cykooz.resizer'
-    if resizer.cpu_extensions != CpuExtensions.none:
-        row_name += f' - {resizer.cpu_extensions.name}'
-
-    alg = resize_alg.algorithm
-    if alg == Algorithm.nearest:
-        alg = 'nearest'
-    else:
-        alg = resize_alg.filter_type.name
-
-    stats: Metadata = benchmark.stats
-    value = stats.stats.mean * 1000
-    results.add(row_name, alg, f'{value:.2f}')
+    _add_bench_result(
+        results,
+        'cykooz.resizer',
+        resizer,
+        resize_options,
+        benchmark.stats,
+    )
 
 
 # Pillow - U8
@@ -236,29 +268,25 @@ def test_resize_pillow_u8(benchmark, pil_filter, source_image, results: BenchRes
 
 
 def test_resize_pil_u8(
-        benchmark, resizer: Resizer, resize_alg, source_image, results: BenchResults
+        benchmark,
+        resizer: Resizer,
+        resize_options,
+        source_image,
+        results: BenchResults,
 ):
     if source_image.mode != 'L':
         source_image = source_image.convert('L')
     dst_image = Image.new('L', DST_SIZE)
-    resize_options = ResizeOptions(resize_alg)
 
     def setup():
         set_image_mode(dst_image, 'L')
         return (resizer, resize_options, source_image, dst_image), {}
 
     benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
-
-    row_name = 'cykooz.resizer U8'
-    if resizer.cpu_extensions != CpuExtensions.none:
-        row_name += f' - {resizer.cpu_extensions.name}'
-
-    alg = resize_alg.algorithm
-    if alg == Algorithm.nearest:
-        alg = 'nearest'
-    else:
-        alg = resize_alg.filter_type.name
-
-    stats: Metadata = benchmark.stats
-    value = stats.stats.mean * 1000
-    results.add(row_name, alg, f'{value:.2f}')
+    _add_bench_result(
+        results,
+        'cykooz.resizer U8',
+        resizer,
+        resize_options,
+        benchmark.stats,
+    )

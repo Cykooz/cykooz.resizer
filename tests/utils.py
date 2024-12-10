@@ -35,15 +35,22 @@ class BenchResults:
         self.columns = []
         self.rows = defaultdict(dict)
 
-    def add(self, row_name, column_name, value):
-        self.rows[row_name][column_name] = value
+    def add(
+            self,
+            row_name: str,
+            column_name: str,
+            value,
+            sort_value: str = '',
+    ):
+        self.rows[(sort_value, row_name)][column_name] = value
         if column_name not in self.columns:
             self.columns.append(column_name)
 
     def print_table(self):
         headers = ['Package (time in ms)'] + self.columns
         table = []
-        for row_name, columns in self.rows.items():
+        items = sorted(self.rows.items())
+        for (_, row_name), columns in items:
             row = [row_name]
             for c_name in self.columns:
                 row.append(columns.get(c_name, ''))

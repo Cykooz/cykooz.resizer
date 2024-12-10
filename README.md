@@ -32,7 +32,7 @@ Supported pixel types and available optimisations:
 | U16x3  | Three `u16` components per pixel (e.g. RGB16)                 |   +    |  +   |  +   |
 | U16x4  | Four `u16` components per pixel (e.g. RGBA16, RGBx16, CMYK16) |   +    |  +   |  +   |
 |  I32   | One `i32` component per pixel                                 |   -    |  -   |  -   |
-|  F32   | One `f32` component per pixel                                 |   -    |  -   |  -   |
+|  F32   | One `f32` component per pixel                                 |   +    |  +   |  -   |
 
 Implemented resize algorithms:
 
@@ -113,20 +113,37 @@ resizer.cpu_extensions = CpuExtensions.sse4_1
 ...
 ```
 
+### Resize with using thread-pool
+
+```python
+from cykooz.resizer import Resizer, ResizeOptions, ResizerThreadPool
+
+
+...
+thread_pool = ResizerThreadPool(num_threads=6)
+resizer = Resizer()
+resizer.resize(
+    src_image,
+    dst_image,
+    ResizeOptions(thread_pool=thread_pool),
+)
+...
+```
+
 ## Benchmarks
 
 Environment:
 
 - CPU: AMD Ryzen 9 5950X
 - RAM: DDR4 4000 MHz
-- Ubuntu 22.04 (linux 6.5.0)
-- Python 3.10
-- Rust 1.78.0
-- cykooz.resizer = "3.0"
+- Ubuntu 24.04 (linux 6.8.0)
+- Python 3.12
+- Rust 1.83.0
+- cykooz.resizer = "3.1" (single-threaded mode)
 
 Other Python libraries used to compare of resizing speed:
 
-- Pillow = "10.3.0" (https://pypi.org/project/Pillow/)
+- Pillow = "11.0.0" (https://pypi.org/project/Pillow/)
 
 Resize algorithms:
 
@@ -140,10 +157,10 @@ Resize algorithms:
 
 | Package (time in ms)    | nearest | bilinear | lanczos3 |
 |:------------------------|--------:|---------:|---------:|
-| Pillow                  |    0.93 |   104.77 |   191.08 |
-| cykooz.resizer          |    0.20 |    28.50 |    56.33 |
-| cykooz.resizer - sse4_1 |    0.20 |    12.28 |    24.31 |
-| cykooz.resizer - avx2   |    0.20 |     8.58 |    21.62 |
+| Pillow                  |    0.89 |   107.21 |   203.67 |
+| cykooz.resizer          |    0.20 |    26.09 |    50.47 |
+| cykooz.resizer - sse4_1 |    0.20 |    12.12 |    24.91 |
+| cykooz.resizer - avx2   |    0.20 |     8.53 |    22.10 |
 
 ### Resize grayscale (U8) image 4928x3279 => 852x567
 
@@ -152,7 +169,7 @@ Resize algorithms:
 
 | Package (time in ms)    | nearest | bilinear | lanczos3 |
 |:------------------------|--------:|---------:|---------:|
-| Pillow                  |    0.25 |    20.62 |    51.62 |
-| cykooz.resizer          |    0.18 |     6.25 |    13.06 |
-| cykooz.resizer - sse4_1 |    0.18 |     2.12 |     5.75 |
-| cykooz.resizer - avx2   |    0.18 |     1.96 |     4.41 |
+| Pillow                  |    0.23 |    21.41 |    51.15 |
+| cykooz.resizer          |    0.17 |     5.30 |    12.17 |
+| cykooz.resizer - sse4_1 |    0.17 |     2.11 |     5.84 |
+| cykooz.resizer - avx2   |    0.17 |     1.86 |     4.58 |

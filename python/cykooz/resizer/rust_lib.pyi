@@ -27,6 +27,15 @@ class PilImageWrapper:
     def pil_image(self) -> Optional[PilImage.Image]: ...
 
 
+class ResizerThreadPool:
+    def __init__(self, num_threads: Optional[int] = None):
+        ...
+
+    @property
+    def current_num_threads(self) -> int:
+        ...
+
+
 class RustAlphaMulDiv:
     def __init__(self): ...
 
@@ -38,47 +47,83 @@ class RustAlphaMulDiv:
         """Set CPU extensions."""
         ...
 
-    def divide_alpha(self, src_image: Image, dst_image: Image):
+    def divide_alpha(
+            self,
+            src_image: Image,
+            dst_image: Image,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         """
         Divides RGB-channels of source image by alpha-channel and store
         result into destination image.
         """
         ...
 
-    def divide_alpha_inplace(self, image: Image):
+    def divide_alpha_inplace(
+            self,
+            image: Image,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         """Divides RGB-channels of image by alpha-channel inplace."""
         ...
 
-    def divide_alpha_pil(self, src_image: PilImageWrapper, dst_image: PilImageWrapper):
+    def divide_alpha_pil(
+            self,
+            src_image: PilImageWrapper,
+            dst_image: PilImageWrapper,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         """
         Divides RGB-channels of source image by alpha-channel and store
         result into destination image.
         """
         ...
 
-    def divide_alpha_pil_inplace(self, image: PilImageWrapper):
+    def divide_alpha_pil_inplace(
+            self,
+            image: PilImageWrapper,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         """Divides RGB-channels of image by alpha-channel inplace."""
         ...
 
-    def multiply_alpha(self, src_image: Image, dst_image: Image):
+    def multiply_alpha(
+            self,
+            src_image: Image,
+            dst_image: Image,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         """
         Multiplies RGB-channels of source image by alpha-channel and store
         result into destination image.
         """
         ...
 
-    def multiply_alpha_inplace(self, image: Image):
+    def multiply_alpha_inplace(
+            self,
+            image: Image,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         """Multiplies RGB-channels of image by alpha-channel inplace."""
         ...
 
-    def multiply_alpha_pil(self, src_image: PilImageWrapper, dst_image: PilImageWrapper):
+    def multiply_alpha_pil(
+            self,
+            src_image: PilImageWrapper,
+            dst_image: PilImageWrapper,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         """
         Multiplies RGB-channels of source image by alpha-channel and store
         result into destination image.
         """
         ...
 
-    def multiply_alpha_pil_inplace(self, image: PilImageWrapper):
+    def multiply_alpha_pil_inplace(
+            self,
+            image: PilImageWrapper,
+            thread_pool: Optional[ResizerThreadPool] = None,
+    ):
         """Multiplies RGB-channels of image by alpha-channel inplace."""
         ...
 
@@ -136,6 +181,12 @@ class RustResizeOptions:
         """Enable or disable consideration of the alpha channel when resizing."""
         ...
 
+    def get_thread_pool(self) -> Optional[ResizerThreadPool]:
+        ...
+
+    def set_thread_pool(self, thread_pool: Optional[ResizerThreadPool]) -> 'RustResizeOptions':
+        ...
+
 
 class RustResizer:
     def __init__(self): ...
@@ -172,6 +223,7 @@ class RustResizer:
 __all__ = [
     'Image',
     'PilImageWrapper',
+    'ResizerThreadPool',
     'RustResizeOptions',
     'RustResizer',
     'RustAlphaMulDiv',

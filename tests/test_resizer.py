@@ -3,7 +3,7 @@
 :Date: 21.03.2021
 """
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 import pytest
 from PIL import Image
@@ -14,7 +14,9 @@ from cykooz.resizer import (
     ImageData,
     PixelType,
     ResizeAlg,
-    ResizeOptions, Resizer,
+    ResizeOptions,
+    Resizer,
+    ResizerThreadPool,
 )
 from utils import Checksum, get_image_checksum, save_result
 
@@ -60,6 +62,7 @@ def test_resizer_cpu_extensions():
 def test_resizer(
         source_image: Image.Image,
         source: str,
+        thread_pool,
         cpu_extensions: CpuExtensions,
         checksum: Checksum,
 ):
@@ -68,9 +71,9 @@ def test_resizer(
 
     dst_size = (255, 170)
     if source == 'raw':
-        dst_image = _resize_raw(cpu_extensions, image, dst_size, checksum)
+        dst_image = _resize_raw(cpu_extensions, image, dst_size, checksum, thread_pool)
     else:
-        dst_image = _resize_pil(cpu_extensions, image, dst_size, checksum)
+        dst_image = _resize_pil(cpu_extensions, image, dst_size, checksum, thread_pool)
 
     save_result(
         dst_image,
@@ -84,6 +87,7 @@ def _resize_raw(
         src_image: Image.Image,
         dst_size: Tuple[int, int],
         checksum: Checksum,
+        thread_pool: Optional[ResizerThreadPool],
 ) -> Image.Image:
     src_image = ImageData(
         src_image.width, src_image.height, PixelType.U8x4, src_image.tobytes('raw')
@@ -99,7 +103,10 @@ def _resize_raw(
     resizer.resize(
         src_image,
         dst_image,
-        ResizeOptions(ResizeAlg.convolution(FilterType.lanczos3)),
+        ResizeOptions(
+            ResizeAlg.convolution(FilterType.lanczos3),
+            thread_pool=thread_pool,
+        ),
     )
 
     assert get_image_checksum(dst_image.get_buffer()) == checksum
@@ -117,6 +124,7 @@ def _resize_pil(
         src_image: Image.Image,
         dst_size: Tuple[int, int],
         checksum: Checksum,
+        thread_pool: Optional[ResizerThreadPool],
 ) -> Image.Image:
     dst_image = Image.new('RGBA', dst_size)
     assert get_image_checksum(dst_image.tobytes('raw')) == Checksum(0, 0, 0, 0)
@@ -129,7 +137,10 @@ def _resize_pil(
     resizer.resize_pil(
         src_image,
         dst_image,
-        ResizeOptions(ResizeAlg.convolution(FilterType.lanczos3)),
+        ResizeOptions(
+            ResizeAlg.convolution(FilterType.lanczos3),
+            thread_pool=thread_pool,
+        ),
     )
     assert dst_image.mode == 'RGBA'
     assert get_image_checksum(dst_image.tobytes('raw')) == checksum
@@ -137,7 +148,7 @@ def _resize_pil(
     return dst_image
 
 
-def test_resize_with_cropping(source_image: Image.Image):
+def test_resize_with_cropping(source_image: Image.Image, thread_pool):
     if source_image.mode != 'RGB':
         source_image = source_image.convert('RGB')
 
@@ -152,6 +163,7 @@ def test_resize_with_cropping(source_image: Image.Image):
         ResizeOptions(
             ResizeAlg.super_sampling(FilterType.lanczos3, 2),
             fit_into_destination=True,
+            thread_pool=thread_pool,
         )
     )
 
@@ -164,7 +176,7 @@ def test_resize_with_cropping(source_image: Image.Image):
 
 @pytest.mark.parametrize('dst_mode', ('RGB', 'RGBA', 'RGBa', 'CMYK', 'I', 'F', 'L'))
 @pytest.mark.parametrize('src_mode', ('RGB', 'RGBA', 'RGBa', 'CMYK', 'I', 'F', 'L'))
-def test_image_modes(source_image: Image.Image, src_mode, dst_mode):
+def test_image_modes(source_image: Image.Image, thread_pool, src_mode, dst_mode):
     if source_image.mode != src_mode:
         source_image = source_image.convert(src_mode)
     resizer = Resizer()
@@ -176,6 +188,7 @@ def test_image_modes(source_image: Image.Image, src_mode, dst_mode):
         dst_image,
         ResizeOptions(
             ResizeAlg.super_sampling(FilterType.lanczos3, 2),
+            thread_pool=thread_pool,
         ),
     )
 

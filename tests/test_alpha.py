@@ -40,6 +40,7 @@ from utils import Checksum, get_image_checksum, save_result
 )
 def test_multiply_alpha_pil(
         source_image: Image.Image,
+        thread_pool,
         inplace: bool,
         cpu_extensions: CpuExtensions,
         checksum: int,
@@ -55,11 +56,11 @@ def test_multiply_alpha_pil(
     )
 
     if inplace:
-        mul_div.multiply_alpha_pil_inplace(image)
+        mul_div.multiply_alpha_pil_inplace(image, thread_pool=thread_pool)
         res_image = image
         dir_name = 'inplace'
     else:
-        res_image = mul_div.multiply_alpha_pil(image)
+        res_image = mul_div.multiply_alpha_pil(image, thread_pool=thread_pool)
         dir_name = 'not_inplace'
 
     assert get_image_checksum(res_image.tobytes('raw')) == checksum
@@ -99,6 +100,7 @@ def test_multiply_alpha_pil(
 )
 def test_divide_alpha_pil(
         source_image: Image.Image,
+        thread_pool,
         inplace: bool,
         cpu_extensions: CpuExtensions,
         checksum: int,
@@ -116,11 +118,11 @@ def test_divide_alpha_pil(
     )
 
     if inplace:
-        mul_div.divide_alpha_pil_inplace(image)
+        mul_div.divide_alpha_pil_inplace(image, thread_pool=thread_pool)
         res_image = image
         dir_name = 'inplace'
     else:
-        res_image = mul_div.divide_alpha_pil(image)
+        res_image = mul_div.divide_alpha_pil(image, thread_pool=thread_pool)
         dir_name = 'not_inplace'
 
     assert res_image.mode == 'RGBA'
