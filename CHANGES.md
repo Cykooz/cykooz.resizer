@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [3.1.0] - Unreleased
+## [3.1.0] - 2025-01-09
 
 - Updated version of ``fast_image_resize`` to 5.1.0.
 - Added support for multi-thread image processing.
