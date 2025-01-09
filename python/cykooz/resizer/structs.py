@@ -59,6 +59,9 @@ class PixelType(Enum):
     U16x4 = 8
     I32 = 9
     F32 = 10
+    F32x2 = 11
+    F32x3 = 12
+    F32x4 = 13
 
 
 PIXEL_SIZE = {
@@ -72,6 +75,9 @@ PIXEL_SIZE = {
     PixelType.U16x4: 8,
     PixelType.I32: 4,
     PixelType.F32: 4,
+    PixelType.F32x2: 8,
+    PixelType.F32x3: 12,
+    PixelType.F32x4: 16,
 }
 
 

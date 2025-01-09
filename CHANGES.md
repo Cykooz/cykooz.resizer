@@ -6,6 +6,10 @@
 - Added support for multi-thread image processing.
   You can create an instance of `ResizerThreadPool` and use it for set
   `ResizeOptions.thread_pool` field or put it as argument of `AlphaMulDiv` methods.
+- Added support for optimization with help of `SSE4.1` and `AVX2` for
+  the `F32` pixel type.
+- Added support for new pixel types `F32x2`, `F32x3` and `F32x4` with
+  optimizations for `SSE4.1` and `AVX2`.
 
 ## [3.0.0] - 2024-05-15
 
@@ -15,12 +19,12 @@
 - Added optional argument `options: ResizeOptions` into `Resizer.resize()`
   and `Resizer.resize_pil()` methods.
 - Added support for images with zero sizes (width or/and height).
-- Added `FilterType.gaussian` filter for convolution resize algorythm.
+- Added `FilterType.gaussian` filter for convolution resize algorithm.
 - Updated version of ``pyo3`` to 0.21.2.
 - **BREAKING CHANGES:**
     - Argument `resize_alg` was removed from `Resizer.__init__()` method.
       You have to use `options` argument of `Resizer.resize()`
-      and `Resizer.resize_pil()` methods to change resize algorythm.
+      and `Resizer.resize_pil()` methods to change resize algorithm.
     - `Resizer`, by default, multiplies and divides color channels of image by
       an alpha channel. You may change this behavior through `options` argument.
     - Deleted support of Python 3.7.
