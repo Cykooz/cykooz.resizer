@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [3.1.1] - 2025-02-17
+
+- Updated version of ``fast_image_resize`` to 5.1.2.
+    - Fixed error in implementation of `ImageView::split_by_width()`, `ImageView::split_by_height()`,
+      `ImageViewMut::split_by_width_mut()` and `ImageViewMut::split_by_height_mut()`.
+    
 ## [3.1.0] - 2025-01-09
 
 - Updated version of ``fast_image_resize`` to 5.1.0.
