@@ -54,8 +54,8 @@ class RustAlphaMulDiv:
             thread_pool: Optional[ResizerThreadPool] = None,
     ):
         """
-        Divides RGB-channels of source image by alpha-channel and store
-        result into destination image.
+        Divides RGB-channels of the source image by alpha-channel and store
+        a result into the destination image.
         """
         ...
 
@@ -64,7 +64,7 @@ class RustAlphaMulDiv:
             image: Image,
             thread_pool: Optional[ResizerThreadPool] = None,
     ):
-        """Divides RGB-channels of image by alpha-channel inplace."""
+        """Divides RGB-channels of the image by alpha-channel inplace."""
         ...
 
     def divide_alpha_pil(
@@ -74,8 +74,8 @@ class RustAlphaMulDiv:
             thread_pool: Optional[ResizerThreadPool] = None,
     ):
         """
-        Divides RGB-channels of source image by alpha-channel and store
-        result into destination image.
+        Divides RGB-channels of the source image by alpha-channel and store
+        a result into the destination image.
         """
         ...
 
@@ -84,7 +84,7 @@ class RustAlphaMulDiv:
             image: PilImageWrapper,
             thread_pool: Optional[ResizerThreadPool] = None,
     ):
-        """Divides RGB-channels of image by alpha-channel inplace."""
+        """Divides RGB-channels of the image by alpha-channel inplace."""
         ...
 
     def multiply_alpha(
@@ -94,8 +94,8 @@ class RustAlphaMulDiv:
             thread_pool: Optional[ResizerThreadPool] = None,
     ):
         """
-        Multiplies RGB-channels of source image by alpha-channel and store
-        result into destination image.
+        Multiplies RGB-channels of the source image by alpha-channel and store
+        a result into the destination image.
         """
         ...
 
@@ -104,7 +104,7 @@ class RustAlphaMulDiv:
             image: Image,
             thread_pool: Optional[ResizerThreadPool] = None,
     ):
-        """Multiplies RGB-channels of image by alpha-channel inplace."""
+        """Multiplies RGB-channels of the image by alpha-channel inplace."""
         ...
 
     def multiply_alpha_pil(
@@ -114,8 +114,8 @@ class RustAlphaMulDiv:
             thread_pool: Optional[ResizerThreadPool] = None,
     ):
         """
-        Multiplies RGB-channels of source image by alpha-channel and store
-        result into destination image.
+        Multiplies RGB-channels of the source image by alpha-channel and store
+        a result into the destination image.
         """
         ...
 
@@ -124,7 +124,7 @@ class RustAlphaMulDiv:
             image: PilImageWrapper,
             thread_pool: Optional[ResizerThreadPool] = None,
     ):
-        """Multiplies RGB-channels of image by alpha-channel inplace."""
+        """Multiplies RGB-channels of the image by alpha-channel inplace."""
         ...
 
 
@@ -148,7 +148,7 @@ class RustResizeOptions:
         ...
 
     def get_crop_box(self) -> Optional[Tuple[float, float, float, float]]:
-        """Get crop box."""
+        """Get a crop box."""
         ...
 
     def set_crop_box(
@@ -170,7 +170,7 @@ class RustResizeOptions:
             self,
             centering: Optional[Tuple[float, float]] = None,
     ) -> 'RustResizeOptions':
-        """Fit source image into the aspect ratio of destination
+        """Fit the source image into the aspect ratio of the destination
         image without distortions."""
         ...
 

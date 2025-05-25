@@ -66,8 +66,9 @@ impl RustResizeOptions {
         let (algorithm, filter_type, multiplicity) = match self.fir_options.algorithm {
             fr::ResizeAlg::Nearest => (1u8, 0u8, 2u8),
             fr::ResizeAlg::Convolution(filter_type) => (2u8, filter_type_as_u8(filter_type), 2u8),
+            fr::ResizeAlg::Interpolation(filter_type) => (3u8, filter_type_as_u8(filter_type), 2u8),
             fr::ResizeAlg::SuperSampling(filter_type, multiplicity) => {
-                (3u8, filter_type_as_u8(filter_type), multiplicity)
+                (4u8, filter_type_as_u8(filter_type), multiplicity)
             }
             _ => (0u8, 0u8, 2u8),
         };
@@ -80,7 +81,8 @@ impl RustResizeOptions {
         let resizer_alg = match algorithm {
             1 => fr::ResizeAlg::Nearest,
             2 => fr::ResizeAlg::Convolution(filter_type_from_u8(filter_type)),
-            3 => fr::ResizeAlg::SuperSampling(filter_type_from_u8(filter_type), multiplicity),
+            3 => fr::ResizeAlg::Interpolation(filter_type_from_u8(filter_type)),
+            4 => fr::ResizeAlg::SuperSampling(filter_type_from_u8(filter_type), multiplicity),
             _ => fr::ResizeAlg::Nearest,
         };
         Self {
@@ -115,7 +117,7 @@ impl RustResizeOptions {
         }
     }
 
-    /// Fit source image into the aspect ratio of destination image without distortions.
+    /// Fit the source image into the aspect ratio of the destination image without distortions.
     #[pyo3(signature = (centering=None))]
     fn set_fit_into_destination(&self, centering: Option<(f64, f64)>) -> Self {
         Self {
@@ -147,7 +149,7 @@ impl RustResizeOptions {
         self.thread_pool.clone()
     }
 
-    /// Set thread pool.
+    /// Set a thread pool.
     #[pyo3(signature = (thread_pool))]
     fn set_thread_pool(&mut self, thread_pool: Option<ResizerThreadPool>) -> Self {
         Self {

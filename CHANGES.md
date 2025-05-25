@@ -1,11 +1,27 @@
 # CHANGELOG
 
+## [3.2.0] - not released yet
+
+- Added new resize algorithm `Algorithm.interpolation`.
+
+  It is like `Algorithm.convolution` but with fixed kernel size.
+  This algorithm can be useful if you want to get a result similar
+  to `OpenCV` (except `INTER_AREA` interpolation).
+
+- Updated version of ``fast_image_resize`` to 5.1.4:
+    - Fixed `SSE4.1` and `AVX2` implementation for dividing image by
+      alpha channel for images with `U16x2` pixels.
+    - Fixed `NEON` implementation for dividing image by
+      alpha channel for images with `U16x2` and `U16x4` pixels .
+    - Fixed error in `NEON` implementation of `MulDiv::multiply_alpha()` and
+      `MulDiv::multiply_alpha_inplace()` for `U8x2` pixels.
+
 ## [3.1.1] - 2025-02-17
 
 - Updated version of ``fast_image_resize`` to 5.1.2.
     - Fixed error in implementation of `ImageView::split_by_width()`, `ImageView::split_by_height()`,
       `ImageViewMut::split_by_width_mut()` and `ImageViewMut::split_by_height_mut()`.
-    
+
 ## [3.1.0] - 2025-01-09
 
 - Updated version of ``fast_image_resize`` to 5.1.0.

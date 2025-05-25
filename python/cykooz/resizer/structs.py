@@ -24,9 +24,17 @@ __all__ = (
 
 @unique
 class Algorithm(Enum):
+    """Resize algorithm.
+
+    interpolation
+        It is like `convolution` but with fixed kernel size.
+        This algorithm can be useful if you want to get a result
+        similar to `OpenCV` (except `INTER_AREA` interpolation).
+    """
     nearest = 1
     convolution = 2
-    super_sampling = 3
+    interpolation = 3
+    super_sampling = 4
 
 
 @unique
