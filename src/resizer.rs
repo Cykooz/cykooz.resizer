@@ -204,7 +204,7 @@ impl RustResizer {
         options: Option<&RustResizeOptions>,
     ) -> PyResult<()> {
         let resizer_mutex = self.resizer.clone();
-        py.allow_threads(move || {
+        py.detach(move || {
             let fir_options = options.map(|o| &o.fir_options);
             let src_image_view = src_image.src_image_view();
             let dst_image_view = dst_image.dst_image_view();
@@ -235,7 +235,7 @@ impl RustResizer {
         options: Option<&RustResizeOptions>,
     ) -> PyResult<()> {
         let resizer_mutex = self.resizer.clone();
-        py.allow_threads(move || {
+        py.detach(move || {
             let fir_options = options.map(|o| &o.fir_options);
             let mut resizer_guard = result2pyresult(resizer_mutex.lock())?;
             let resizer = resizer_guard.deref_mut();

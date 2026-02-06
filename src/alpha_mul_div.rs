@@ -56,7 +56,7 @@ impl RustAlphaMulDiv {
         thread_pool: Option<ResizerThreadPool>,
     ) -> PyResult<()> {
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(move || {
+        py.detach(move || {
             let src_image_view = src_image.src_image_view();
             let dst_image_view = dst_image.dst_image_view();
             let mul_div_guard = result2pyresult(mul_div_mutex.lock())?;
@@ -80,7 +80,7 @@ impl RustAlphaMulDiv {
         thread_pool: Option<ResizerThreadPool>,
     ) -> PyResult<()> {
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(move || {
+        py.detach(move || {
             let dst_image_view = image.dst_image_view();
             let mul_div_guard = result2pyresult(mul_div_mutex.lock())?;
             let mul_div = mul_div_guard.deref();
@@ -111,7 +111,7 @@ impl RustAlphaMulDiv {
             return result2pyresult(Err("Invalid mode of destination PIL image"));
         }
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(move || {
+        py.detach(move || {
             let mul_div_guard = result2pyresult(mul_div_mutex.lock())?;
             let mul_div = mul_div_guard.deref();
             if let Some(thread_pool) = thread_pool {
@@ -135,7 +135,7 @@ impl RustAlphaMulDiv {
             return result2pyresult(Err("Invalid mode of PIL image"));
         }
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(|| {
+        py.detach(|| {
             let mul_div_guard = result2pyresult(mul_div_mutex.lock())?;
             let mul_div = mul_div_guard.deref();
             if let Some(thread_pool) = thread_pool {
@@ -159,7 +159,7 @@ impl RustAlphaMulDiv {
         thread_pool: Option<ResizerThreadPool>,
     ) -> PyResult<()> {
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(move || {
+        py.detach(move || {
             let src_image_view = src_image.src_image_view();
             let dst_image_view = dst_image.dst_image_view();
             let mul_div_guard = result2pyresult(mul_div_mutex.lock())?;
@@ -183,7 +183,7 @@ impl RustAlphaMulDiv {
         thread_pool: Option<ResizerThreadPool>,
     ) -> PyResult<()> {
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(move || {
+        py.detach(move || {
             let dst_image_view = image.dst_image_view();
             let mul_div_guard = result2pyresult(mul_div_mutex.lock())?;
             let mul_div = mul_div_guard.deref();
@@ -213,7 +213,7 @@ impl RustAlphaMulDiv {
             return result2pyresult(Err("Invalid mode of destination PIL image"));
         }
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(move || {
+        py.detach(move || {
             let mul_div_guard = result2pyresult(mul_div_mutex.lock())?;
             let mul_div = mul_div_guard.deref();
             if let Some(thread_pool) = thread_pool {
@@ -237,7 +237,7 @@ impl RustAlphaMulDiv {
             return result2pyresult(Err("Invalid mode of PIL image"));
         }
         let mul_div_mutex = self.mul_div.clone();
-        py.allow_threads(|| {
+        py.detach(|| {
             let mul_div_guard = result2pyresult(mul_div_mutex.lock())?;
             let mul_div = mul_div_guard.deref();
             if let Some(thread_pool) = thread_pool {

@@ -2,7 +2,7 @@ use crate::utils::result2pyresult;
 use pyo3::prelude::*;
 use std::sync::Arc;
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct ResizerThreadPool {
     pool: Arc<rayon::ThreadPool>,

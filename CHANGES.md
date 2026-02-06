@@ -7,14 +7,18 @@
   It is like `Algorithm.convolution` but with fixed kernel size.
   This algorithm can be useful if you want to get a result similar
   to `OpenCV` (except `INTER_AREA` interpolation).
-
-- Updated version of ``fast_image_resize`` to 5.1.4:
+- Added support of `Pillow` >= 12.0.
+- Updated version of ``fast_image_resize`` to 6.0.0:
     - Fixed `SSE4.1` and `AVX2` implementation for dividing image by
       alpha channel for images with `U16x2` pixels.
     - Fixed `NEON` implementation for dividing image by
       alpha channel for images with `U16x2` and `U16x4` pixels .
     - Fixed error in `NEON` implementation of `MulDiv::multiply_alpha()` and
       `MulDiv::multiply_alpha_inplace()` for `U8x2` pixels.
+    - Fixed a "divide by zero" error in case of using multithreading to resize images
+      with particular sizes.
+    - Added support for multi-thread image resizing using the `ResizeAlg::Nearest` algorithm.
+- Updated version of ``pyo3`` to 0.28.0.
 
 ## [3.1.1] - 2025-02-17
 

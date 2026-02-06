@@ -8,7 +8,8 @@ jobs:
     name: Linux
     strategy:
       matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        pillow-version: [ "==11.3.0", ">=12.0" ]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +25,7 @@ jobs:
       - name: Install dev packages
         run: |
           python -m pip install wheel
-          python -m pip install .[dev]
+          python -m pip install .[dev] "Pillow${{ pillow-version }}"
 
       - name: Run tests
         env:
@@ -33,7 +34,7 @@ jobs:
           pytest --benchmark-skip -vv
 
       - name: Build sdist
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == '3.12' && matrix.pillow-version == '>=12.0' }}
         uses: PyO3/maturin-action@v1
         with:
           maturin-version: latest
@@ -42,6 +43,7 @@ jobs:
           args: --out dist
 
       - name: Build wheels
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         uses: PyO3/maturin-action@v1
         with:
           maturin-version: latest
@@ -50,6 +52,7 @@ jobs:
           args: --release --strip --out dist -i ${{ matrix.python-version }}
 
       - name: Install wheel
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         run: |
           cd dist
           python -m pip install cykooz.resizer --no-index --find-links ./ --force-reinstall
@@ -57,6 +60,7 @@ jobs:
           cd ..
 
       - name: Upload sdist and wheels
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         uses: actions/upload-artifact@v4
         with:
           name: wheels_lin-${{ matrix.python-version }}
@@ -68,7 +72,8 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        pillow-version: [ "==11.3.0", ">=12.0" ]
     steps:
       - uses: actions/checkout@v4
 
@@ -85,7 +90,7 @@ jobs:
       - name: Install dev packages
         run: |
           python -m pip install wheel
-          python -m pip install .[dev]
+          python -m pip install .[dev] "Pillow${{ pillow-version }}"
 
       - name: Run tests
         env:
@@ -94,12 +99,14 @@ jobs:
           pytest --benchmark-skip -vv
 
       - name: Build wheel
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         uses: PyO3/maturin-action@v1
         with:
           target: "x86_64-pc-windows-msvc"
           args: --release --strip --out dist -i python
 
       - name: Install built wheel
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         run: |
           cd dist
           python -m pip install cykooz.resizer --no-index --find-links . --force-reinstall
@@ -107,6 +114,7 @@ jobs:
           cd ..
 
       - name: Upload wheel
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         uses: actions/upload-artifact@v4
         with:
           name: wheels_win-${{ matrix.python-version }}
@@ -117,7 +125,8 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        pillow-version: [ "==11.3.0", ">=12.0" ]
     steps:
       - uses: actions/checkout@v4
 
@@ -138,7 +147,7 @@ jobs:
       - name: Install dev packages
         run: |
           python -m pip install wheel
-          python -m pip install .[dev]
+          python -m pip install .[dev] "Pillow${{ pillow-version }}"
 
       - name: Run tests
         env:
@@ -147,18 +156,21 @@ jobs:
           pytest --benchmark-skip -vv
 
       - name: Build wheels - x86_64
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         uses: PyO3/maturin-action@v1
         with:
           target: "x86_64-apple-darwin"
           args: --release --strip --out dist -i python
 
       - name: Build wheels - aarch64
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         uses: PyO3/maturin-action@v1
         with:
           target: "aarch64-apple-darwin"
           args: --release --strip --out dist -i python
 
       - name: Install built wheel
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         run: |
           cd dist
           python -m pip install cykooz.resizer --find-links . --force-reinstall
@@ -166,6 +178,7 @@ jobs:
           cd ..
 
       - name: Upload wheels
+        if: ${{ matrix.pillow-version == '>=12.0' }}
         uses: actions/upload-artifact@v4
         with:
           name: wheels_mac-${{ matrix.python-version }}
