@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [3.2.0] - not released yet
+## [3.2.0] - 2026-02-08
 
 - Added new resize algorithm `Algorithm.interpolation`.
 
