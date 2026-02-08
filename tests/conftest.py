@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from cykooz.resizer import ResizerThreadPool
+from cykooz_resizer import ResizerThreadPool
 
 
 @pytest.fixture(name='source_image', scope='session')

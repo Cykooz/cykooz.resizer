@@ -49,14 +49,14 @@ jobs:
           maturin-version: latest
           target: x86_64
           manylinux: auto
-          args: --release --strip --out dist -i ${{ matrix.python-version }}
+          args: --release --strip --compatibility pypi --auditwheel repair --out dist -i ${{ matrix.python-version }}
 
       - name: Install wheel
         if: ${{ matrix.pillow-version == '>=12.0' }}
         run: |
           cd dist
-          python -m pip install cykooz.resizer --no-index --find-links ./ --force-reinstall
-          python -c "import cykooz.resizer"
+          python -m pip install cykooz_resizer --no-index --find-links ./ --force-reinstall
+          python -c "import cykooz_resizer"
           cd ..
 
       - name: Upload sdist and wheels
@@ -101,13 +101,13 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: "x86_64-pc-windows-msvc"
-          args: --release --strip --out dist -i python
+          args: --release --strip --compatibility pypi --out dist -i python
 
       - name: Install built wheel
         run: |
           cd dist
-          python -m pip install cykooz.resizer --no-index --find-links . --force-reinstall
-          python -c "import cykooz.resizer"
+          python -m pip install cykooz_resizer --no-index --find-links . --force-reinstall
+          python -c "import cykooz_resizer"
           cd ..
 
       - name: Upload wheel
@@ -154,7 +154,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: "x86_64-apple-darwin"
-          args: --release --strip --out dist -i python
+          args: --release --strip --compatibility pypi --out dist -i python
 
       - name: Build wheels - aarch64
         uses: PyO3/maturin-action@v1
@@ -165,8 +165,8 @@ jobs:
       - name: Install built wheel
         run: |
           cd dist
-          python -m pip install cykooz.resizer --find-links . --force-reinstall
-          python -c "import cykooz.resizer"
+          python -m pip install cykooz_resizer --find-links . --force-reinstall
+          python -c "import cykooz_resizer"
           cd ..
 
       - name: Upload wheels

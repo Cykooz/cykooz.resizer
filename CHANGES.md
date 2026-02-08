@@ -1,7 +1,9 @@
 # CHANGELOG
 
-## [3.2.0] - 2026-02-08
+## [4.0.0] - 2026-02-09
 
+- **BREAKING CHANGES:**
+    - Package renamed from `cykooz.resizer` to `cykooz_resizer`.
 - Added new resize algorithm `Algorithm.interpolation`.
 
   It is like `Algorithm.convolution` but with fixed kernel size.

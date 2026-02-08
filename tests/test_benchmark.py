@@ -9,7 +9,7 @@ from PIL import Image
 from PIL.Image import Resampling
 from pytest_benchmark.stats import Metadata
 
-from cykooz.resizer import (
+from cykooz_resizer import (
     Algorithm,
     CpuExtensions,
     FilterType,
@@ -19,7 +19,7 @@ from cykooz.resizer import (
     ResizeOptions,
     Resizer,
 )
-from cykooz.resizer.alpha import set_image_mode
+from cykooz_resizer.alpha import set_image_mode
 from utils import BenchResults
 
 
@@ -127,7 +127,7 @@ def test_resize_pillow(benchmark, pil_filter, source_image, results: BenchResult
     results.add('Pillow', alg, f'{value:.2f}')
 
 
-# cykooz.resizer - resize raw image
+# cykooz_resizer - resize raw image
 
 
 def resize_raw(
@@ -153,7 +153,7 @@ def test_resize_raw(benchmark, resizer, resize_options, source_image):
     benchmark.pedantic(resize_raw, setup=setup, rounds=50, warmup_rounds=3)
 
 
-# cykooz.resizer - resize PIL image
+# cykooz_resizer - resize PIL image
 
 
 def resize_pil(
@@ -212,7 +212,7 @@ def test_resize_pil(
     benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
     _add_bench_result(
         results,
-        'cykooz.resizer',
+        'cykooz_resizer',
         resizer,
         resize_options,
         benchmark.stats,
@@ -238,7 +238,7 @@ def test_resize_pillow_u8(benchmark, pil_filter, source_image, results: BenchRes
     results.add('Pillow U8', alg, f'{value:.2f}')
 
 
-# cykooz.resizer - resize PIL U8 image
+# cykooz_resizer - resize PIL U8 image
 
 # def test_resize_pil_u8(benchmark, resize_alg, source_image, results: BenchResults):
 #     resizer = Resizer(resize_alg)
@@ -254,7 +254,7 @@ def test_resize_pillow_u8(benchmark, pil_filter, source_image, results: BenchRes
 #
 #     benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
 #
-#     row_name = 'cykooz.resizer U8'
+#     row_name = 'cykooz_resizer U8'
 #
 #     alg = resizer.algorithm.algorithm
 #     if alg == Algorithm.nearest:
@@ -285,7 +285,7 @@ def test_resize_pil_u8(
     benchmark.pedantic(resize_pil, setup=setup, rounds=10, warmup_rounds=3)
     _add_bench_result(
         results,
-        'cykooz.resizer U8',
+        'cykooz_resizer U8',
         resizer,
         resize_options,
         benchmark.stats,

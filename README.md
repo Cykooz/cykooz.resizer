@@ -1,6 +1,6 @@
-# cykooz.resizer
+# cykooz_resizer
 
-```cykooz.resizer``` is package with the optimized version of image resizing
+```cykooz_resizer``` is package with the optimized version of image resizing
 based on Rust's crate [fast_image_resize](https://crates.io/crates/fast_image_resize).
 
 [CHANGELOG](https://github.com/Cykooz/cykooz.resizer/blob/main/CHANGES.md)
@@ -8,13 +8,13 @@ based on Rust's crate [fast_image_resize](https://crates.io/crates/fast_image_re
 ## Installation
 
 ```shell
-python3 -m pip install cykooz.resizer
+python3 -m pip install cykooz_resizer
 ```
 
 Or with automatically installing Pillow:
 
 ```shell
-python3 -m pip install cykooz.resizer[pillow]
+python3 -m pip install cykooz_resizer[pillow]
 ```
 
 ## Information
@@ -60,7 +60,7 @@ Implemented resize algorithms:
 ```python
 from PIL import Image
 
-from cykooz.resizer import FilterType, ResizeAlg, Resizer, ResizeOptions
+from cykooz_resizer import FilterType, ResizeAlg, Resizer, ResizeOptions
 
 
 resizer = Resizer()
@@ -87,7 +87,7 @@ resizer.resize_pil(
 ### Resize raw image with an alpha channel
 
 ```python
-from cykooz.resizer import ImageData, PixelType, Resizer
+from cykooz_resizer import ImageData, PixelType, Resizer
 
 
 def resize_raw(width: int, height: int, pixels: bytes):
@@ -108,7 +108,7 @@ def resize_raw(width: int, height: int, pixels: bytes):
 ### Change used CPU-extensions
 
 ```python
-from cykooz.resizer import Resizer, CpuExtensions
+from cykooz_resizer import Resizer, CpuExtensions
 
 
 resizer = Resizer()
@@ -119,7 +119,7 @@ resizer.cpu_extensions = CpuExtensions.sse4_1
 ### Resize with using thread-pool
 
 ```python
-from cykooz.resizer import Resizer, ResizeOptions, ResizerThreadPool
+from cykooz_resizer import Resizer, ResizeOptions, ResizerThreadPool
 
 
 ...
@@ -139,14 +139,14 @@ Environment:
 
 - CPU: AMD Ryzen 9 5950X
 - RAM: DDR4 4000 MHz
-- Ubuntu 24.04 (linux 6.8.0)
+- Ubuntu 24.04 (linux 6.17.0)
 - Python 3.12
-- Rust 1.83.0
-- cykooz.resizer = "3.1" (single-threaded mode)
+- Rust 1.93.0
+- cykooz_resizer = "4.0" (single-threaded mode)
 
 Other Python libraries used to compare of resizing speed:
 
-- Pillow = "11.0.0" (https://pypi.org/project/Pillow/)
+- Pillow = "12.1.0" (https://pypi.org/project/Pillow/)
 
 Resize algorithms:
 
@@ -160,10 +160,10 @@ Resize algorithms:
 
 | Package (time in ms)    | nearest | bilinear | lanczos3 |
 |:------------------------|--------:|---------:|---------:|
-| Pillow                  |    0.89 |   107.21 |   203.67 |
-| cykooz.resizer          |    0.20 |    26.09 |    50.47 |
-| cykooz.resizer - sse4_1 |    0.20 |    12.12 |    24.91 |
-| cykooz.resizer - avx2   |    0.20 |     8.53 |    22.10 |
+| Pillow                  |    1.04 |   103.70 |   190.19 |
+| cykooz_resizer - none   |    0.20 |    25.94 |    50.75 |
+| cykooz_resizer - sse4_1 |    0.20 |    12.19 |    24.92 |
+| cykooz_resizer - avx2   |    0.20 |     8.68 |    22.98 |
 
 ### Resize grayscale (U8) image 4928x3279 => 852x567
 
@@ -172,7 +172,7 @@ Resize algorithms:
 
 | Package (time in ms)    | nearest | bilinear | lanczos3 |
 |:------------------------|--------:|---------:|---------:|
-| Pillow                  |    0.23 |    21.41 |    51.15 |
-| cykooz.resizer          |    0.17 |     5.30 |    12.17 |
-| cykooz.resizer - sse4_1 |    0.17 |     2.11 |     5.84 |
-| cykooz.resizer - avx2   |    0.17 |     1.86 |     4.58 |
+| Pillow                  |    0.24 |    22.44 |    51.64 |
+| cykooz_resizer - none   |    0.17 |     5.34 |    12.41 |
+| cykooz_resizer - sse4_1 |    0.17 |     2.14 |     5.87 |
+| cykooz_resizer - avx2   |    0.17 |     1.90 |     4.59 |

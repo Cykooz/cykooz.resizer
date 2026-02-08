@@ -8,7 +8,7 @@ from typing import Optional, Tuple
 import pytest
 from PIL import Image
 
-from cykooz.resizer import (
+from cykooz_resizer import (
     CpuExtensions,
     FilterType,
     ImageData,

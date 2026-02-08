@@ -6,7 +6,7 @@ import weakref
 
 from PIL import Image
 
-from cykooz.resizer.rust_lib import PilImageWrapper
+from cykooz_resizer.rust_lib import PilImageWrapper
 
 
 def test_pillow_image_view_gc():

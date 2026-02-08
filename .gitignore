@@ -6,6 +6,6 @@
 __pycache__
 /dist
 /tests/data/result
-/python/cykooz/resizer/*.so
-/python/cykooz/resizer/*.pyd
-/python/cykooz/resizer/*.dll
+/python/cykooz_resizer/*.so
+/python/cykooz_resizer/*.pyd
+/python/cykooz_resizer/*.dll

@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 
 [project]
-name = "cykooz.resizer"
+name = "cykooz_resizer"
 version = "3.2.0"
 description = "A fast image resizer"
 readme = "README.md"
@@ -51,8 +51,9 @@ pillow = [
 [tool.maturin]
 python-source = "python"
 features = ["pyo3/extension-module"]
-module-name = "cykooz.resizer.rust_lib"
+module-name = "cykooz_resizer.rust_lib"
 strip = true
+auditwheel = "repair"
 
 
 [tool.pytest.ini_options]

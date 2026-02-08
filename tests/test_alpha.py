@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from cykooz.resizer import AlphaMulDiv, CpuExtensions
+from cykooz_resizer import AlphaMulDiv, CpuExtensions
 
 from utils import Checksum, get_image_checksum, save_result
 
