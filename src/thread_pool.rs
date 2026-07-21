@@ -1,6 +1,8 @@
-use crate::utils::result2pyresult;
-use pyo3::prelude::*;
 use std::sync::Arc;
+
+use pyo3::prelude::*;
+
+use crate::utils::result2pyresult;
 
 #[pyclass(from_py_object)]
 #[derive(Clone)]

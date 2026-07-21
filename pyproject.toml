@@ -1,10 +1,10 @@
 [build-system]
-requires = ["maturin>=1.5.1"]
+requires = ["maturin>=1.14.1"]
 build-backend = "maturin"
 
 
 [project]
-name = "cykooz_resizer"
+name = "cykooz-resizer"
 version = "4.0.0"
 description = "A fast image resizer"
 readme = "README.md"
@@ -58,6 +58,7 @@ auditwheel = "repair"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
+markers = ["now"]
 testpaths = [
     "tests",
 ]

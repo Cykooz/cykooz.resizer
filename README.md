@@ -8,13 +8,13 @@ based on Rust's crate [fast_image_resize](https://crates.io/crates/fast_image_re
 ## Installation
 
 ```shell
-python3 -m pip install cykooz_resizer
+python3 -m pip install cykooz-resizer
 ```
 
 Or with automatically installing Pillow:
 
 ```shell
-python3 -m pip install cykooz_resizer[pillow]
+python3 -m pip install cykooz-resizer[pillow]
 ```
 
 ## Information
@@ -51,7 +51,7 @@ Implemented resize algorithms:
     - lanczos3
 - Super sampling - is resizing an image in two steps.
   The first step uses the "nearest" algorithm. The second step uses "convolution"
-  with configurable filter.
+  with a configurable filter.
 
 ## Usage Examples
 
@@ -84,7 +84,7 @@ resizer.resize_pil(
 )
 ```
 
-### Resize raw image with an alpha channel
+### Resize the raw image with an alpha channel
 
 ```python
 from cykooz_resizer import ImageData, PixelType, Resizer

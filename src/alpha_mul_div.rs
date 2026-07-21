@@ -1,13 +1,14 @@
 use std::ops::Deref;
 use std::sync::{Arc, Mutex};
 
+use fast_image_resize as fir;
+use pyo3::prelude::*;
+use pyo3::types::PyInt;
+
 use crate::image_view::Image;
 use crate::pil_image_wrapper::{PilImageWrapper, RgbMode};
 use crate::thread_pool::ResizerThreadPool;
 use crate::utils::{cpu_extensions_from_u8, cpu_extensions_to_u8, result2pyresult};
-use fast_image_resize as fir;
-use pyo3::prelude::*;
-use pyo3::types::PyInt;
 
 #[pyclass]
 pub struct RustAlphaMulDiv {

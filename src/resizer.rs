@@ -1,13 +1,14 @@
 use std::ops::DerefMut;
 use std::sync::{Arc, Mutex};
 
+use fast_image_resize as fr;
+use pyo3::prelude::*;
+use pyo3::types::PyInt;
+
 use crate::image_view::Image;
 use crate::pil_image_wrapper::PilImageWrapper;
 use crate::thread_pool::ResizerThreadPool;
 use crate::utils::{cpu_extensions_from_u8, cpu_extensions_to_u8, result2pyresult};
-use fast_image_resize as fr;
-use pyo3::prelude::*;
-use pyo3::types::PyInt;
 
 fn filter_type_from_u8(filter: u8) -> fr::FilterType {
     match filter {
@@ -75,7 +76,7 @@ impl RustResizeOptions {
         (algorithm, filter_type, multiplicity)
     }
 
-    /// Set resize algorithm.
+    /// Set the resize algorithm.
     #[pyo3(signature = (algorithm, filter_type, multiplicity))]
     fn set_resize_alg(&mut self, algorithm: u8, filter_type: u8, multiplicity: u8) -> Self {
         let resizer_alg = match algorithm {
@@ -225,7 +226,7 @@ impl RustResizer {
         })
     }
 
-    /// Resize source image into destination image.
+    /// Resize the source image into a destination image.
     #[pyo3(signature = (src_image, dst_image, options=None))]
     fn resize_pil(
         &self,

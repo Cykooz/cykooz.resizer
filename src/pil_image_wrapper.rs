@@ -1,14 +1,16 @@
-use crate::utils::result2pyresult;
-use fast_image_resize::pixels::PixelType;
-use fast_image_resize::{ImageView, ImageViewMut, IntoImageView, IntoImageViewMut, PixelTrait};
-use pyo3::prelude::*;
-use pyo3::types::PyCapsule;
-use pyo3::{PyTraverseError, PyVisit, intern};
 use std::ffi::{CStr, c_int, c_void};
 use std::marker::PhantomData;
 use std::ptr::NonNull;
 use std::slice;
 use std::str::FromStr;
+
+use fast_image_resize::pixels::PixelType;
+use fast_image_resize::{ImageView, ImageViewMut, IntoImageView, IntoImageViewMut, PixelTrait};
+use pyo3::prelude::*;
+use pyo3::types::PyCapsule;
+use pyo3::{PyTraverseError, PyVisit, intern};
+
+use crate::utils::result2pyresult;
 
 // https://github.com/python-pillow/Pillow/blob/master/src/libImaging/Imaging.h#L67
 static IMAGING_MAGIC: &CStr = c"Pillow Imaging";
@@ -97,6 +99,16 @@ impl<'a> ImagingMemory<'a> {
         match pixel_type {
             PixelType::U8 => image8,
             _ => image32,
+        }
+    }
+
+    pub fn is_rgb_mode(&self) -> bool {
+        if self.pil_version < 12 {
+            let image_struct = self.v11_struct();
+            image_struct.mode.starts_with(b"RGB")
+        } else {
+            let image_struct = self.v12_struct();
+            image_struct.mode == IMAGING_MODE_RGBa || image_struct.mode == IMAGING_MODE_RGBA
         }
     }
 
@@ -234,16 +246,15 @@ impl PilImageWrapper {
 
     pub(crate) fn is_rgb_mode(&self, py: Python) -> PyResult<bool> {
         if let Some(ref pil_image) = self.pil_image {
-            let py_mode = pil_image.getattr(py, "mode")?;
-            let mode: String = py_mode.extract(py)?;
-            return Ok(mode.starts_with("RGB"));
+            let pil_struct = ImagingMemory::new(py, pil_image)?;
+            return Ok(pil_struct.is_rgb_mode());
         }
         result2pyresult(Err("Unknown mode of PIL image"))
     }
 
     pub(crate) fn set_rgb_mode(&mut self, py: Python, value: RgbMode) -> PyResult<()> {
         if let Some(pil_image) = &mut self.pil_image {
-            let mut pil_struct = ImagingMemory::new(py, &pil_image)?;
+            let mut pil_struct = ImagingMemory::new(py, pil_image)?;
             pil_struct.set_rgb_mode(value);
         }
         Ok(())

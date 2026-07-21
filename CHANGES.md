@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [4.0.0] - 2026-02-09
+## [4.0.0] - 2026-07-22
 
 - **BREAKING CHANGES:**
     - Package renamed from `cykooz.resizer` to `cykooz_resizer`.
@@ -10,7 +10,7 @@
   This algorithm can be useful if you want to get a result similar
   to `OpenCV` (except `INTER_AREA` interpolation).
 - Added support of `Pillow` >= 12.0.
-- Updated version of ``fast_image_resize`` to 6.0.0:
+- Updated version of ``fast_image_resize`` to 6.1.0:
     - Fixed `SSE4.1` and `AVX2` implementation for dividing image by
       alpha channel for images with `U16x2` pixels.
     - Fixed `NEON` implementation for dividing image by
@@ -20,7 +20,14 @@
     - Fixed a "divide by zero" error in case of using multithreading to resize images
       with particular sizes.
     - Added support for multi-thread image resizing using the `ResizeAlg::Nearest` algorithm.
-- Updated version of ``pyo3`` to 0.28.0.
+    - Improved speed of `AVX2` implementation for vertical
+      convolution pass for pixel types based on `u8` components.
+    - Improved speed of `native` implementation for vertical
+      convolution pass for pixel types based on `u16` components.
+    - Fixed a deadlock in case of using `rayon` thread pool with only one thread to
+      resize with `ResizeAlg::Nearest` algorithm.
+- Updated version of ``pyo3`` to 0.29.0.
+- Added support for Python 3.14.
 
 ## [3.1.1] - 2025-02-17
 

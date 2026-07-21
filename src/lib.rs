@@ -1,9 +1,10 @@
+use pyo3::prelude::*;
+
 use crate::alpha_mul_div::RustAlphaMulDiv;
 use crate::image_view::Image;
 use crate::pil_image_wrapper::PilImageWrapper;
 use crate::resizer::{RustResizeOptions, RustResizer};
 use crate::thread_pool::ResizerThreadPool;
-use pyo3::prelude::*;
 
 #[macro_use]
 mod utils;
