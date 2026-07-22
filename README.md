@@ -139,14 +139,14 @@ Environment:
 
 - CPU: AMD Ryzen 9 5950X
 - RAM: DDR4 4000 MHz
-- Ubuntu 24.04 (linux 6.17.0)
+- Ubuntu 24.04 (linux 7.0.0)
 - Python 3.12
-- Rust 1.93.0
+- Rust 1.97.1
 - cykooz_resizer = "4.0" (single-threaded mode)
 
 Other Python libraries used to compare of resizing speed:
 
-- Pillow = "12.1.0" (https://pypi.org/project/Pillow/)
+- Pillow = "12.3.0" (https://pypi.org/project/Pillow/)
 
 Resize algorithms:
 
@@ -160,19 +160,19 @@ Resize algorithms:
 
 | Package (time in ms)    | nearest | bilinear | lanczos3 |
 |:------------------------|--------:|---------:|---------:|
-| Pillow                  |    1.04 |   103.70 |   190.19 |
-| cykooz_resizer - none   |    0.20 |    25.94 |    50.75 |
-| cykooz_resizer - sse4_1 |    0.20 |    12.19 |    24.92 |
-| cykooz_resizer - avx2   |    0.20 |     8.68 |    22.98 |
+| Pillow                  |    1.22 |   110.44 |   206.34 |
+| cykooz_resizer - none   |    0.21 |    26.52 |    51.28 |
+| cykooz_resizer - sse4_1 |    0.21 |    13.48 |    26.97 |
+| cykooz_resizer - avx2   |    0.21 |    10.79 |    26.72 |
 
 ### Resize grayscale (U8) image 4928x3279 => 852x567
 
 - Source image [nasa-4928x3279.png](https://github.com/Cykooz/cykooz.resizer/blob/main/tests/data/nasa-4928x3279.png)
-  has converted into grayscale image with one byte per pixel.
+  has converted into a grayscale image with one byte per pixel.
 
 | Package (time in ms)    | nearest | bilinear | lanczos3 |
 |:------------------------|--------:|---------:|---------:|
-| Pillow                  |    0.24 |    22.44 |    51.64 |
-| cykooz_resizer - none   |    0.17 |     5.34 |    12.41 |
-| cykooz_resizer - sse4_1 |    0.17 |     2.14 |     5.87 |
-| cykooz_resizer - avx2   |    0.17 |     1.90 |     4.59 |
+| Pillow                  |    0.28 |    21.42 |    51.72 |
+| cykooz_resizer - none   |    0.18 |     5.21 |    12.07 |
+| cykooz_resizer - sse4_1 |    0.18 |     2.22 |     5.91 |
+| cykooz_resizer - avx2   |    0.18 |     1.78 |     4.35 |
