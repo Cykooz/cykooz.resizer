@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [4.0.0] - 2026-07-22
+## [4.0.0] - 2026-07-23
 
 - **BREAKING CHANGES:**
     - Package renamed from `cykooz.resizer` to `cykooz_resizer`.
