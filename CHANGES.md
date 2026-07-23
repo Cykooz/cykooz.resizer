@@ -1,31 +1,25 @@
 # CHANGELOG
 
-## [4.0.0] - 2026-07-23
+## [4.0.1] - 2026-07-23
 
 - **BREAKING CHANGES:**
     - Package renamed from `cykooz.resizer` to `cykooz_resizer`.
 - Added new resize algorithm `Algorithm.interpolation`.
 
-  It is like `Algorithm.convolution` but with fixed kernel size.
-  This algorithm can be useful if you want to get a result similar
-  to `OpenCV` (except `INTER_AREA` interpolation).
+  It is like `Algorithm.convolution` but with fixed kernel size. This algorithm can be useful if you want to get a
+  result similar to `OpenCV` (except `INTER_AREA` interpolation).
 - Added support of `Pillow` >= 12.0.
 - Updated version of ``fast_image_resize`` to 6.1.0:
-    - Fixed `SSE4.1` and `AVX2` implementation for dividing image by
-      alpha channel for images with `U16x2` pixels.
-    - Fixed `NEON` implementation for dividing image by
-      alpha channel for images with `U16x2` and `U16x4` pixels .
+    - Fixed `SSE4.1` and `AVX2` implementation for dividing image by alpha channel for images with `U16x2` pixels.
+    - Fixed `NEON` implementation for dividing image by alpha channel for images with `U16x2` and `U16x4` pixels .
     - Fixed error in `NEON` implementation of `MulDiv::multiply_alpha()` and
       `MulDiv::multiply_alpha_inplace()` for `U8x2` pixels.
-    - Fixed a "divide by zero" error in case of using multithreading to resize images
-      with particular sizes.
+    - Fixed a "divide by zero" error in case of using multithreading to resize images with particular sizes.
     - Added support for multi-thread image resizing using the `ResizeAlg::Nearest` algorithm.
-    - Improved speed of `AVX2` implementation for vertical
-      convolution pass for pixel types based on `u8` components.
-    - Improved speed of `native` implementation for vertical
-      convolution pass for pixel types based on `u16` components.
-    - Fixed a deadlock in case of using `rayon` thread pool with only one thread to
-      resize with `ResizeAlg::Nearest` algorithm.
+    - Improved speed of `AVX2` implementation for vertical convolution pass for pixel types based on `u8` components.
+    - Improved speed of `native` implementation for vertical convolution pass for pixel types based on `u16` components.
+    - Fixed a deadlock in case of using `rayon` thread pool with only one thread to resize with `ResizeAlg::Nearest`
+      algorithm.
 - Updated version of ``pyo3`` to 0.29.0.
 - Added support for Python 3.14.
 
@@ -38,30 +32,26 @@
 ## [3.1.0] - 2025-01-09
 
 - Updated version of ``fast_image_resize`` to 5.1.0.
-- Added support for multi-thread image processing.
-  You can create an instance of `ResizerThreadPool` and use it for set
+- Added support for multi-thread image processing. You can create an instance of `ResizerThreadPool` and use it for set
   `ResizeOptions.thread_pool` field or put it as argument of `AlphaMulDiv` methods.
-- Added support for optimization with help of `SSE4.1` and `AVX2` for
-  the `F32` pixel type.
-- Added support for new pixel types `F32x2`, `F32x3` and `F32x4` with
-  optimizations for `SSE4.1` and `AVX2`.
+- Added support for optimization with help of `SSE4.1` and `AVX2` for the `F32` pixel type.
+- Added support for new pixel types `F32x2`, `F32x3` and `F32x4` with optimizations for `SSE4.1` and `AVX2`.
 
 ## [3.0.0] - 2024-05-15
 
 - Updated version of ``fast_image_resize`` to 4.0.0.
-- Added support of `Neon` CPU-instructions to speedup image resizing
-  on ARM architecture.
+- Added support of `Neon` CPU-instructions to speedup image resizing on ARM architecture.
 - Added optional argument `options: ResizeOptions` into `Resizer.resize()`
   and `Resizer.resize_pil()` methods.
 - Added support for images with zero sizes (width or/and height).
 - Added `FilterType.gaussian` filter for convolution resize algorithm.
 - Updated version of ``pyo3`` to 0.21.2.
 - **BREAKING CHANGES:**
-    - Argument `resize_alg` was removed from `Resizer.__init__()` method.
-      You have to use `options` argument of `Resizer.resize()`
+    - Argument `resize_alg` was removed from `Resizer.__init__()` method. You have to use `options` argument of
+      `Resizer.resize()`
       and `Resizer.resize_pil()` methods to change resize algorithm.
-    - `Resizer`, by default, multiplies and divides color channels of image by
-      an alpha channel. You may change this behavior through `options` argument.
+    - `Resizer`, by default, multiplies and divides color channels of image by an alpha channel. You may change this
+      behavior through `options` argument.
     - Deleted support of Python 3.7.
 
 ## [2.2.1] - 2024-02-15
@@ -82,8 +72,7 @@
 
 ## [2.1.1] - 2022-07-17
 
-- Fixed resizing when the destination image has the same dimensions
-  as the source image.
+- Fixed resizing when the destination image has the same dimensions as the source image.
 
 ## [2.1] - 2022-07-07
 
